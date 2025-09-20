@@ -28,105 +28,118 @@ class QuickActions extends StatelessWidget {
                   icon: Icons.add_business,
                   title: "Novo Serviço",
                   color: const Color(0xFF6A4C93),
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pushNamed(context, '/new-service');
+                  },
                 ),
                 _buildActionCard(
                   icon: Icons.calendar_today,
                   title: "Minha Agenda",
                   color: const Color(0xFF4ECDC4),
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pushNamed(context, '/schedule');
+                  },
                 ),
                 _buildActionCard(
                   icon: Icons.attach_money,
                   title: "Receber Pagamento",
                   color: const Color(0xFFFFE66D),
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pushNamed(context, '/payments');
+                  },
                 ),
                 _buildActionCard(
                   icon: Icons.people,
                   title: "Meus Clientes",
                   color: const Color(0xFFFF6B6B),
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pushNamed(context, '/clients');
+                  },
                 ),
               ],
             ),
           ),
           const SizedBox(height: 16),
-          Container(
-            width: double.infinity,
-            margin: const EdgeInsets.symmetric(vertical: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF6A4C93), Color(0xFF8E44AD)],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
+          GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, '/public-schedule');
+            },
+            child: Container(
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF6A4C93), Color(0xFF8E44AD)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.07),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.07),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.18),
-                    borderRadius: BorderRadius.circular(14),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.18),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(
+                      Icons.visibility,
+                      color: Colors.white,
+                      size: 26,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.visibility,
-                    color: Colors.white,
-                    size: 26,
-                  ),
-                ),
-                const SizedBox(width: 18),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        "Link da Agenda Pública",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                  const SizedBox(width: 18),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "Link da Agenda Pública",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        "Compartilhe com seus clientes",
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
+                        SizedBox(height: 2),
+                        Text(
+                          "Compartilhe com seus clientes",
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.18),
-                    borderRadius: BorderRadius.circular(12),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.18),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.share,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.share,
-                    color: Colors.white,
-                    size: 22,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
