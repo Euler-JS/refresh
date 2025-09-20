@@ -22,7 +22,7 @@ class LocationDetail {
 
 List<LocationDetail> locationItems = [
   LocationDetail(
-    image: "Images/theway.png",
+    image: "Images/thebridge.png",
     name: 'The Way',
     address: 'Spain',
     price: 1350,
@@ -44,7 +44,7 @@ List<LocationDetail> locationItems = [
         "Iceland's nature is renowned for its raw and untamed beauty, characterized by dramatic landscapes shaped by volcanic activity, glaciers, geysers, and cascading waterfalls,if you want to enjoy more then you need to visit this all place.",
   ),
   LocationDetail(
-    image: "Images/sunrise.png",
+    image: "Images/thebridge.png",
     name: 'Oyo Lakes',
     address: 'Croatia',
     price: 3250,

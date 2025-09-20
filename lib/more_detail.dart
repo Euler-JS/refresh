@@ -8,228 +8,207 @@ class MoreDetail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SizedBox(
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        child: Stack(
-          children: [
-            Stack(
-              children: [
-                Container(
-                  height: MediaQuery.of(context).size.height / 2.25,
-                  width: MediaQuery.of(context).size.width,
-                  color: Colors.white,
-                ),
-                Hero(
-                  tag: location.image,
-                  child: Container(
-                    height: MediaQuery.of(context).size.height / 2.25,
-                    width: MediaQuery.of(context).size.width,
-                    decoration: BoxDecoration(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
+                children: [
+                  Hero(
+                    tag: location.image,
+                    child: Container(
+                      height: MediaQuery.of(context).size.height * 0.38,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
                         image: DecorationImage(
-                            image: AssetImage(location.image), fit: BoxFit.fill),
-                        borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(70))),
-                    child: Stack(
-                      children: [
-                        // for name address and location icon,
-                        Positioned(
-                          top: 320,
-                          left: 150,
-                          child: Column(
-                            children: [
-                              Text(
-                                location.name,
-                                style: const TextStyle(
-                                    fontSize: 25,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.location_on,
-                                    size: 30,
-                                    color: Colors.white,
-                                  ),
-                                  Text(
-                                    location.address,
-                                    style: const TextStyle(
-                                        fontSize: 20,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w500),
-                                  ),
-                                ],
-                              )
-                            ],
-                          ),
+                          image: AssetImage(location.image),
+                          fit: BoxFit.cover,
                         ),
-                        // For back button
-                        Positioned(
-                          top: 50,
-                          left: 5,
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.pop(context);
-                            },
-                            child: const Icon(
-                              Icons.arrow_back,
-                              size: 30,
-                              color: Colors.white,
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(70),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.10),
+                            blurRadius: 16,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            top: 40,
+                            left: 20,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  location.name,
+                                  style: const TextStyle(
+                                    fontSize: 26,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    shadows: [
+                                      Shadow(
+                                        color: Colors.black26,
+                                        blurRadius: 6,
+                                      ),
+                                    ],
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.location_on, size: 20, color: Colors.white),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      location.address,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                        shadows: [
+                                          Shadow(
+                                            color: Colors.black26,
+                                            blurRadius: 6,
+                                          ),
+                                        ],
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                        // for bookmark icon
-                        Positioned(
-                          top: 50,
-                          right: 15,
-                          child: Container(
-                            height: 50,
-                            width: 50,
-                            decoration: BoxDecoration(
+                          Positioned(
+                            top: 40,
+                            right: 20,
+                            child: Container(
+                              decoration: BoxDecoration(
                                 color: Colors.white38,
-                                borderRadius: BorderRadius.circular(200)),
-                            child: GestureDetector(
-                              child: const Icon(
-                                Icons.bookmark,
-                                size: 30,
-                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(100),
                               ),
+                              padding: const EdgeInsets.all(8),
+                              child: const Icon(Icons.bookmark, size: 22, color: Colors.white),
+                            ),
+                          ),
+                          Positioned(
+                            top: 40,
+                            left: 0,
+                            child: IconButton(
+                              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ratingandMore(),
+                    const SizedBox(height: 32),
+                    const Text(
+                      "Description",
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      location.description,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Color.fromARGB(255, 231, 178, 200),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        Text(
+                          "\$ ${location.price}",
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFD38CAB),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(32),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+                            elevation: 0,
+                          ),
+                          onPressed: () {},
+                          child: const Text(
+                            "Book Now",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ),
-              ],
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: SizedBox(
-                height: MediaQuery.of(context).size.height / 1.8,
-                width: MediaQuery.of(context).size.width,
-                child: RotatedBox(
-                    quarterTurns: 2,
-                    child: Image.asset(
-                      location.image,
-                      fit: BoxFit.fill,
-                    )),
-              ),
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                height: MediaQuery.of(context).size.height / 1.8,
-                width: MediaQuery.of(context).size.width,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(70),
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // For rating , temprature adn date
-                      ratingandMore(),
-                      const SizedBox(
-                        height: 85,
-                      ),
-                      const Text(
-                        "Description",
-                        style: TextStyle(
-                            fontSize: 25, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      Text(
-                        location.description,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          color: Color.fromARGB(255, 231, 178, 200),
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundImage: const AssetImage("Images/as.jpeg"),
                         ),
-                      ),
-                      const SizedBox(
-                        height: 42,
-                      ),
-// For last ,bottom parts
-                      Row(
-                        children: [
-                          Text(
-                            "\$ ${location.price}",
-                            style: const TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          const Spacer(),
-                          Container(
-                            height: 65,
-                            width: 170,
-                            decoration: BoxDecoration(
-                                color: const Color(0xFFD38CAB),
-                                borderRadius: BorderRadius.circular(50)),
-                            child: const Padding(
-                              padding: EdgeInsets.only(left: 33, top: 19),
-                              child: Text("Book Now",  style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold,),),
+                        const SizedBox(width: 8),
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundImage: const AssetImage("Images/aa.png"),
+                        ),
+                        const SizedBox(width: 8),
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundImage: const AssetImage("Images/ab.jpeg"),
+                        ),
+                        const SizedBox(width: 8),
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: const Color(0xFFD38CAB),
+                          child: const Text(
+                            "28+",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
-                          )
-                        ],
-                      )
-                    ],
-                  ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          "Recommended",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                 ),
               ),
-            ),
-            const Positioned(
-              top: 500,
-              left: 30,
-              child: CircleAvatar(
-                radius: 20,
-                backgroundImage: AssetImage("Images/as.jpeg"),
-              ),
-            ),
-            const Positioned(
-              top: 500,
-              left: 55,
-              child: CircleAvatar(
-                radius: 20,
-                backgroundImage: AssetImage("Images/aa.png"),
-              ),
-            ),
-            const Positioned(
-              top: 500,
-              left: 80,
-              child: CircleAvatar(
-                radius: 20,
-                backgroundImage: AssetImage("Images/ab.jpeg"),
-              ),
-            ),
-            const Positioned(
-              top: 500,
-              left: 110,
-              child: CircleAvatar(
-                radius: 20,
-                backgroundColor: Color(0xFFD38CAB),
-                child: Text(
-                  "28+",
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-              ),
-            ),
-            const Positioned(
-              left: 165,
-              top: 505,
-              child: Text(
-                "Recommended",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            )
-          ],
+            ],
+          ),
         ),
       ),
     );

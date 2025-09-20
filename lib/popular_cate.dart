@@ -8,99 +8,79 @@ class PopularCategories extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-          const EdgeInsets.only(right: 20.0, left: 20, top: 40),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: const [
               Text(
                 "Popular Categories",
-                style: TextStyle(fontSize: 25),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               Text(
                 "See All",
-                style: TextStyle(
-                    fontSize: 14, color: Color(0xFFA36C88)),
+                style: TextStyle(fontSize: 14, color: Color(0xFFA36C88)),
               ),
             ],
           ),
-          const SizedBox(
-            height: 20,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: const Color(0xFFF8CDEC),
-                child: Image.asset(
-                  "Images/beatch.png",
-                  height: 60,
-                ),
-              ),
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: const Color(0xFF9ED2F7),
-                child: Image.asset(
-                  "Images/camping.png",
-                  height: 60,
-                ),
-              ),
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: const Color(0xFfcbb8ef),
-                child: Image.asset(
-                  "Images/car.png",
-                  height: 60,
-                ),
-              ),
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: const Color(0xFFFacdcc),
-                child: Image.asset(
-                  "Images/food.png",
-                ),
-              ),
-            ],
-          ),
-          const Padding(
-            padding: EdgeInsets.only(top: 13, right: 15, left: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          const SizedBox(height: 18),
+          SizedBox(
+            height: 110,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
               children: [
-                Text(
-                  "Beach",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFFB07C97),
-                  ),
-                ),
-                 Text(
-                  "Camping",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFFB07C97),
-                  ),
-                ),
-                 Text(
-                  "Car",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFFB07C97),
-                  ),
-                ),
-                 Text(
-                  "Food",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFFB07C97),
-                  ),
-                ),
+                _categoryCard("Images/beatch.png", "Beach", const Color(0xFFF8CDEC)),
+                _categoryCard("Images/camping.png", "Camping", const Color(0xFF9ED2F7)),
+                _categoryCard("Images/car.png", "Car", const Color(0xFfcbb8ef)),
+                _categoryCard("Images/food.png", "Food", const Color(0xFFFacdcc)),
               ],
             ),
-          )
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _categoryCard(String image, String label, Color color) {
+    return Container(
+      width: 90,
+      margin: const EdgeInsets.only(right: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.15),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.25),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Image.asset(image, height: 36),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFFB07C97),
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );
