@@ -23,7 +23,6 @@ class _HomePageState extends State<HomePage> {
     "Concluídos",
   ];
 
-  // Lista filtrada baseada na categoria selecionada
   List<ServiceItem> get filteredServices {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -79,7 +78,7 @@ class _HomePageState extends State<HomePage> {
             Stack(
               children: [
                 Container(
-                  height: MediaQuery.of(context).size.height / 1.3,
+                  height: MediaQuery.of(context).size.height / 1.35,
                   width: MediaQuery.of(context).size.width,
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
@@ -102,32 +101,34 @@ class _HomePageState extends State<HomePage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          const SizedBox(height: 10),
+                          
                           // Header
                           _buildHeader(),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 16),
                           
                           // Greeting e Status
                           _buildGreetingSection(),
-                          const SizedBox(height: 12.5),
+                          const SizedBox(height: 20),
                           
-                          // Estatísticas rápidas (com navegação)
+                          // Estatísticas rápidas
                           _buildStatsSection(),
-                          const SizedBox(height: 25),
+                          const SizedBox(height: 20),
                           
                           // Filtros de categoria
                           _buildCategoryFilter(),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 25),
                         ],
                       ),
                     ),
                   ),
                 ),
                 
-                // Cards de serviços (agora filtrados)
+                // Cards de serviços (posição ajustada)
                 Positioned(
-                  top: 335,
+                  top: 390,
                   child: SizedBox(
-                    height: 320,
+                    height: 280,
                     width: MediaQuery.of(context).size.width,
                     child: filteredServices.isEmpty 
                       ? _buildEmptyState()
@@ -145,11 +146,11 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
             
-            // Seção inferior
+            // Seção inferior (altura ajustada)
             Align(
               alignment: Alignment.bottomCenter,
               child: Container(
-                height: MediaQuery.of(context).size.height / 3.5,
+                height: MediaQuery.of(context).size.height / 3.8,
                 width: MediaQuery.of(context).size.width,
                 decoration: const BoxDecoration(
                   color: Colors.white,
@@ -250,7 +251,6 @@ class _HomePageState extends State<HomePage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Perfil do usuário em vez do menu
         GestureDetector(
           onTap: () {
             // Navegar para perfil/configurações
@@ -321,7 +321,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildGreetingSection() {
-    // Atualiza a saudação baseada no filtro selecionado
     String greeting = _getGreetingText();
     
     return Column(
@@ -330,16 +329,16 @@ class _HomePageState extends State<HomePage> {
         const Text(
           "Olá, Maria! 👋",
           style: TextStyle(
-            fontSize: 28,
+            fontSize: 26,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Text(
           greeting,
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 15,
             color: Colors.white.withOpacity(0.9),
           ),
         ),
@@ -382,7 +381,6 @@ class _HomePageState extends State<HomePage> {
       children: [
         GestureDetector(
           onTap: () {
-            // Navegar para SchedulePage com filtro de pendentes
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -399,7 +397,6 @@ class _HomePageState extends State<HomePage> {
         ),
         GestureDetector(
           onTap: () {
-            // Navegar para SchedulePage com filtro de concluídos
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -416,7 +413,6 @@ class _HomePageState extends State<HomePage> {
         ),
         GestureDetector(
           onTap: () {
-            // Navegar para PaymentsPage
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -442,7 +438,7 @@ class _HomePageState extends State<HomePage> {
     required Color color,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.25),
         borderRadius: BorderRadius.circular(16),
@@ -466,13 +462,13 @@ class _HomePageState extends State<HomePage> {
               color: color.withOpacity(0.3),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: Colors.white, size: 24),
+            child: Icon(icon, color: Colors.white, size: 22),
           ),
           const SizedBox(height: 8),
           Text(
             value,
             style: const TextStyle(
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.white,
               shadows: [
@@ -487,7 +483,7 @@ class _HomePageState extends State<HomePage> {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 13,
+              fontSize: 12,
               color: Colors.white,
               fontWeight: FontWeight.w600,
               shadows: [
@@ -520,8 +516,8 @@ class _HomePageState extends State<HomePage> {
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
-              margin: const EdgeInsets.only(right: 15),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 color: isSelected 
                   ? Colors.white 
@@ -546,7 +542,7 @@ class _HomePageState extends State<HomePage> {
                     categoryList[index],
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      fontSize: 14,
+                      fontSize: 13,
                       color: isSelected 
                         ? const Color(0xFF6A4C93) 
                         : Colors.white,
@@ -563,7 +559,7 @@ class _HomePageState extends State<HomePage> {
                       child: Text(
                         filteredServices.length.toString(),
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),

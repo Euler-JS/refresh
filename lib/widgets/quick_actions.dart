@@ -6,21 +6,22 @@ class QuickActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           const Text(
             "Ações Rápidas",
             style: TextStyle(
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Color(0xFF2C2C2C),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           SizedBox(
-            height: 90,
+            height: 85,
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
@@ -42,7 +43,7 @@ class QuickActions extends StatelessWidget {
                 ),
                 _buildActionCard(
                   icon: Icons.attach_money,
-                  title: "Receber Pagamento",
+                  title: "Receber",
                   color: const Color(0xFFFFE66D),
                   onTap: () {
                     Navigator.pushNamed(context, '/payments');
@@ -50,7 +51,7 @@ class QuickActions extends StatelessWidget {
                 ),
                 _buildActionCard(
                   icon: Icons.people,
-                  title: "Meus Clientes",
+                  title: "Clientes",
                   color: const Color(0xFFFF6B6B),
                   onTap: () {
                     Navigator.pushNamed(context, '/clients');
@@ -59,45 +60,45 @@ class QuickActions extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           GestureDetector(
             onTap: () {
               Navigator.pushNamed(context, '/public-schedule');
             },
             child: Container(
               width: double.infinity,
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFF6A4C93), Color(0xFF8E44AD)],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.07),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
                   ),
                 ],
               ),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.18),
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
                       Icons.visibility,
                       color: Colors.white,
-                      size: 26,
+                      size: 22,
                     ),
                   ),
-                  const SizedBox(width: 18),
+                  const SizedBox(width: 12),
                   const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,7 +108,7 @@ class QuickActions extends StatelessWidget {
                           "Link da Agenda Pública",
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 16,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                           ),
                           maxLines: 1,
@@ -118,7 +119,7 @@ class QuickActions extends StatelessWidget {
                           "Compartilhe com seus clientes",
                           style: TextStyle(
                             color: Colors.white70,
-                            fontSize: 14,
+                            fontSize: 12,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -126,16 +127,17 @@ class QuickActions extends StatelessWidget {
                       ],
                     ),
                   ),
+                  const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.18),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
                       Icons.share,
                       color: Colors.white,
-                      size: 22,
+                      size: 18,
                     ),
                   ),
                 ],
@@ -156,52 +158,55 @@ class QuickActions extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 90,
-        margin: const EdgeInsets.symmetric(horizontal: 8),
+        width: 85,
+        margin: const EdgeInsets.only(right: 10),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: color.withOpacity(0.10),
               blurRadius: 8,
-              offset: const Offset(0, 4),
+              offset: const Offset(0, 3),
             ),
           ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 44,
-              height: 44,
-              margin: const EdgeInsets.only(top: 12, bottom: 6),
+              width: 40,
+              height: 40,
+              margin: const EdgeInsets.only(top: 10, bottom: 6),
               decoration: BoxDecoration(
                 color: color.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
                 color: color,
-                size: 24,
+                size: 22,
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(
-                title,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: color,
-                  height: 1.2,
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                    height: 1.2,
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
           ],
         ),
       ),
