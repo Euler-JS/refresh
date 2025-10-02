@@ -134,7 +134,7 @@ class _NewServicePageState extends State<NewServicePage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              // const SizedBox(height: 24),
               const Text(
                 "Novo Serviço",
                 style: TextStyle(
