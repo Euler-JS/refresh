@@ -1,31 +1,42 @@
 import 'package:flutter/material.dart';
+import '../utils/responsive_text.dart';
 
 class QuickActions extends StatelessWidget {
   const QuickActions({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(
+        horizontal: screenWidth * 0.045, 
+        vertical: screenHeight * 0.02
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
+          Text(
             "Ações Rápidas",
-            style: TextStyle(
-              fontSize: 20,
+            style: ResponsiveText.style(
+              context: context,
+              fontSize: 22, // Larger font size to match design
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2C2C2C),
+              color: const Color(0xFF2C2C2C),
+              letterSpacing: 0.1, // Slight letter spacing for better readability
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: screenHeight * 0.015),
           SizedBox(
-            height: 85,
+            height: screenHeight * 0.11, // 11% of screen height
             child: ListView(
               scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
               children: [
                 _buildActionCard(
+                  context: context,
                   icon: Icons.add_business,
                   title: "Novo Serviço",
                   color: const Color(0xFF6A4C93),
@@ -34,6 +45,7 @@ class QuickActions extends StatelessWidget {
                   },
                 ),
                 _buildActionCard(
+                  context: context,
                   icon: Icons.calendar_today,
                   title: "Minha Agenda",
                   color: const Color(0xFF4ECDC4),
@@ -42,6 +54,7 @@ class QuickActions extends StatelessWidget {
                   },
                 ),
                 _buildActionCard(
+                  context: context,
                   icon: Icons.attach_money,
                   title: "Receber",
                   color: const Color(0xFFFFE66D),
@@ -50,6 +63,7 @@ class QuickActions extends StatelessWidget {
                   },
                 ),
                 _buildActionCard(
+                  context: context,
                   icon: Icons.people,
                   title: "Clientes",
                   color: const Color(0xFFFF6B6B),
@@ -60,14 +74,17 @@ class QuickActions extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: screenHeight * 0.018),
           GestureDetector(
             onTap: () {
               Navigator.pushNamed(context, '/public-schedule');
             },
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: EdgeInsets.symmetric(
+                horizontal: screenWidth * 0.04, 
+                vertical: screenHeight * 0.015
+              ),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFF6A4C93), Color(0xFF8E44AD)],
@@ -87,39 +104,41 @@ class QuickActions extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(screenWidth * 0.02),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.18),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.visibility,
                       color: Colors.white,
-                      size: 22,
+                      size: screenWidth * 0.055,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  const Expanded(
+                  SizedBox(width: screenWidth * 0.03),
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           "Link da Agenda Pública",
-                          style: TextStyle(
-                            color: Colors.white,
+                          style: ResponsiveText.style(
+                            context: context,
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        SizedBox(height: 2),
+                        SizedBox(height: screenHeight * 0.003),
                         Text(
                           "Compartilhe com seus clientes",
-                          style: TextStyle(
-                            color: Colors.white70,
+                          style: ResponsiveText.style(
+                            context: context,
                             fontSize: 12,
+                            color: Colors.white70,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -127,17 +146,17 @@ class QuickActions extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: screenWidth * 0.02),
                   Container(
-                    padding: const EdgeInsets.all(7),
+                    padding: EdgeInsets.all(screenWidth * 0.018),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.18),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.share,
                       color: Colors.white,
-                      size: 18,
+                      size: screenWidth * 0.045,
                     ),
                   ),
                 ],
@@ -150,24 +169,29 @@ class QuickActions extends StatelessWidget {
   }
 
   Widget _buildActionCard({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required Color color,
     required VoidCallback onTap,
   }) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final cardWidth = screenWidth * 0.2; // 20% of screen width to fit more closely
+    
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 85,
-        margin: const EdgeInsets.only(right: 10),
+        width: cardWidth,
+        margin: EdgeInsets.only(right: screenWidth * 0.025),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20), // Rounder corners to match design
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.10),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
+              color: color.withOpacity(0.08), // Lighter shadow
+              blurRadius: 10,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -176,28 +200,32 @@ class QuickActions extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 40,
-              height: 40,
-              margin: const EdgeInsets.only(top: 10, bottom: 6),
+              width: cardWidth * 0.5,
+              height: cardWidth * 0.5,
+              margin: EdgeInsets.only(
+                top: screenHeight * 0.014, 
+                bottom: screenHeight * 0.006
+              ),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(12),
+                color: color.withOpacity(0.12), // Lighter background to match design
+                borderRadius: BorderRadius.circular(15), // Rounder corners
               ),
               child: Icon(
                 icon,
                 color: color,
-                size: 22,
+                size: cardWidth * 0.28, // Slightly larger icon
               ),
             ),
             Flexible(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
+                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.015),
                 child: Text(
                   title,
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: ResponsiveText.style(
+                    context: context,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: color,
@@ -206,7 +234,7 @@ class QuickActions extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: screenHeight * 0.01),
           ],
         ),
       ),

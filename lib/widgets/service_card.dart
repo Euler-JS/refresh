@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:travel_app_ui/Model/service_models.dart';
+import '../Model/service_models.dart';
+import '../utils/responsive_text.dart';
 
 class ServiceCard extends StatelessWidget {
   final ServiceItem service;
@@ -8,14 +9,19 @@ class ServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get screen dimensions for responsive sizing
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = screenWidth * 0.75; // 75% of screen width to match design
+    final cardHeight = cardWidth * 1.05; // Lower aspect ratio to match design
+    
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(context, '/service-detail', arguments: service);
       },
       child: Container(
-        width: 260,
-        height: 290,
-        margin: const EdgeInsets.symmetric(horizontal: 10),
+        width: cardWidth,
+        height: cardHeight,
+        margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.02), // 2% of screen width for closer cards
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(25),
@@ -33,7 +39,7 @@ class ServiceCard extends StatelessWidget {
           children: [
             // Header do card com status
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(screenWidth * 0.04), // 4% of screen width
               decoration: BoxDecoration(
                 gradient: _getStatusGradient(),
                 borderRadius: const BorderRadius.only(
@@ -50,8 +56,8 @@ class ServiceCard extends StatelessWidget {
                     children: [
                       Flexible(
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: screenWidth * 0.025,
                             vertical: 5,
                           ),
                           decoration: BoxDecoration(
@@ -60,33 +66,35 @@ class ServiceCard extends StatelessWidget {
                           ),
                           child: Text(
                             _getStatusText(),
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: ResponsiveText.style(
+                              context: context,
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
+                              color: Colors.white,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.all(6),
+                        padding: EdgeInsets.all(screenWidth * 0.015),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.bookmark_border,
                           color: Colors.white,
-                          size: 18,
+                          size: screenWidth * 0.045,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: cardHeight * 0.02),
                   Text(
                     service.serviceType,
-                    style: const TextStyle(
+                    style: ResponsiveText.style(
+                      context: context,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -94,22 +102,23 @@ class ServiceCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: cardHeight * 0.01),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.person,
                         color: Colors.white,
-                        size: 16,
+                        size: screenWidth * 0.04,
                       ),
-                      const SizedBox(width: 5),
+                      SizedBox(width: screenWidth * 0.01),
                       Expanded(
                         child: Text(
                           service.clientName,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: ResponsiveText.style(
+                            context: context,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
+                            color: Colors.white,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -124,26 +133,27 @@ class ServiceCard extends StatelessWidget {
             // Corpo do card
             Flexible(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(screenWidth * 0.04),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.location_on,
-                          color: Color(0xFF6A4C93),
-                          size: 16,
+                          color: const Color(0xFF6A4C93),
+                          size: screenWidth * 0.04,
                         ),
-                        const SizedBox(width: 5),
+                        SizedBox(width: screenWidth * 0.01),
                         Expanded(
                           child: Text(
                             service.location,
-                            style: const TextStyle(
-                              color: Color(0xFF6A4C93),
+                            style: ResponsiveText.style(
+                              context: context,
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
+                              color: const Color(0xFF6A4C93),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -151,21 +161,22 @@ class ServiceCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: cardHeight * 0.02),
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.access_time,
-                          color: Color(0xFF999999),
-                          size: 16,
+                          color: const Color(0xFF999999),
+                          size: screenWidth * 0.04,
                         ),
-                        const SizedBox(width: 5),
+                        SizedBox(width: screenWidth * 0.01),
                         Expanded(
                           child: Text(
                             "${_formatDate(service.date)} às ${service.time}",
-                            style: const TextStyle(
-                              color: Color(0xFF999999),
+                            style: ResponsiveText.style(
+                              context: context,
                               fontSize: 13,
+                              color: const Color(0xFF999999),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -173,41 +184,43 @@ class ServiceCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: cardHeight * 0.025),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Flexible(
                           child: Text(
                             "MZN ${service.price.toStringAsFixed(0)}",
-                            style: const TextStyle(
+                            style: ResponsiveText.style(
+                              context: context,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF6A4C93),
+                              color: const Color(0xFF6A4C93),
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: screenWidth * 0.02),
                         GestureDetector(
                           onTap: () {
                             Navigator.pushNamed(context, '/service-detail', arguments: service);
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: screenWidth * 0.03,
+                              vertical: screenWidth * 0.015,
                             ),
                             decoration: BoxDecoration(
                               color: const Color(0xFF6A4C93),
                               borderRadius: BorderRadius.circular(15),
                             ),
-                            child: const Text(
+                            child: Text(
                               "Detalhes",
-                              style: TextStyle(
-                                color: Colors.white,
+                              style: ResponsiveText.style(
+                                context: context,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
+                                color: Colors.white,
                               ),
                             ),
                           ),
@@ -229,22 +242,32 @@ class ServiceCard extends StatelessWidget {
       case ServiceStatus.pending:
         return const LinearGradient(
           colors: [Color(0xFFFF6B6B), Color(0xFFFF8E8E)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         );
       case ServiceStatus.confirmed:
         return const LinearGradient(
           colors: [Color(0xFF4ECDC4), Color(0xFF7BDBD4)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         );
       case ServiceStatus.inProgress:
         return const LinearGradient(
           colors: [Color(0xFFFFE66D), Color(0xFFFFED88)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         );
       case ServiceStatus.completed:
         return const LinearGradient(
           colors: [Color(0xFF95E1D3), Color(0xFFB8E6D3)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         );
       default:
         return const LinearGradient(
-          colors: [Color(0xFF6A4C93), Color(0xFF8E44AD)],
+          colors: [Color(0xFF4ECDC4), Color(0xFF7BDBD4)], // Using teal for default to match screenshot
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         );
     }
   }
