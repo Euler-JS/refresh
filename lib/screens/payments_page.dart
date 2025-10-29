@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../Model/model.dart';
 
 class PaymentsPage extends StatefulWidget {
   const PaymentsPage({super.key});
@@ -11,72 +12,31 @@ class _PaymentsPageState extends State<PaymentsPage> {
   String selectedFilter = 'Todos';
   final List<String> filters = ['Todos', 'Pendentes', 'Pagos', 'Atrasados'];
 
-  final List<Map<String, dynamic>> _debtors = [
-    {
-      'client': 'Ana Silva',
-      'service': 'Ornamentação Casamento',
-      'amount': 15000.0,
-      'status': 'pendente',
-      'dueDate': DateTime.now().add(const Duration(days: 5)),
-      'serviceDate': DateTime.now().subtract(const Duration(days: 2)),
-      'category': 'Casamento',
-      'paymentMethod': 'Transferência',
-    },
-    {
-      'client': 'Carlos Mendes',
-      'service': 'Decoração Baixa',
-      'amount': 8000.0,
-      'status': 'atrasado',
-      'dueDate': DateTime.now().subtract(const Duration(days: 3)),
-      'serviceDate': DateTime.now().subtract(const Duration(days: 10)),
-      'category': 'Evento Corporativo',
-      'paymentMethod': 'Dinheiro',
-    },
-    {
-      'client': 'João Paulo',
-      'service': 'Buffet Festa',
-      'amount': 12000.0,
-      'status': 'pago',
-      'dueDate': DateTime.now().subtract(const Duration(days: 1)),
-      'serviceDate': DateTime.now().subtract(const Duration(days: 8)),
-      'category': 'Aniversário',
-      'paymentMethod': 'PIX',
-    },
-    {
-      'client': 'Maria Santos',
-      'service': 'Chá de Bebê',
-      'amount': 5000.0,
-      'status': 'pendente',
-      'dueDate': DateTime.now().add(const Duration(days: 7)),
-      'serviceDate': DateTime.now().subtract(const Duration(days: 1)),
-      'category': 'Chá de Bebê',
-      'paymentMethod': 'Cartão',
-    },
-  ];
+  final List<PaymentModel> _payments = paymentItems;
 
-  List<Map<String, dynamic>> get filteredDebtors {
+  List<PaymentModel> get filteredPayments {
     switch (selectedFilter) {
       case 'Pendentes':
-        return _debtors.where((d) => d['status'] == 'pendente').toList();
+        return _payments.where((p) => p.status == 'pendente').toList();
       case 'Pagos':
-        return _debtors.where((d) => d['status'] == 'pago').toList();
+        return _payments.where((p) => p.status == 'pago').toList();
       case 'Atrasados':
-        return _debtors.where((d) => d['status'] == 'atrasado').toList();
+        return _payments.where((p) => p.status == 'atrasado').toList();
       default:
-        return _debtors;
+        return _payments;
     }
   }
 
   double get totalPending {
-    return _debtors
-        .where((d) => d['status'] == 'pendente' || d['status'] == 'atrasado')
-        .fold(0.0, (sum, item) => sum + item['amount']);
+    return _payments
+        .where((p) => p.status == 'pendente' || p.status == 'atrasado')
+        .fold(0.0, (sum, item) => sum + item.remainingAmount);
   }
 
   double get totalReceived {
-    return _debtors
-        .where((d) => d['status'] == 'pago')
-        .fold(0.0, (sum, item) => sum + item['amount']);
+    return _payments
+        .where((p) => p.status == 'pago')
+        .fold(0.0, (sum, item) => sum + item.totalAmount);
   }
 
   @override
@@ -194,9 +154,9 @@ class _PaymentsPageState extends State<PaymentsPage> {
   }
 
   Widget _buildStatsRow() {
-    final pendingCount = _debtors.where((d) => d['status'] == 'pendente').length;
-    final overdueCount = _debtors.where((d) => d['status'] == 'atrasado').length;
-    final paidCount = _debtors.where((d) => d['status'] == 'pago').length;
+    final pendingCount = _payments.where((p) => p.status == 'pendente').length;
+    final overdueCount = _payments.where((p) => p.status == 'atrasado').length;
+    final paidCount = _payments.where((p) => p.status == 'pago').length;
     
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -359,17 +319,17 @@ class _PaymentsPageState extends State<PaymentsPage> {
   }
 
   Widget _buildPaymentsList() {
-    if (filteredDebtors.isEmpty) {
+    if (filteredPayments.isEmpty) {
       return _buildEmptyState();
     }
 
     return ListView.separated(
       padding: const EdgeInsets.all(20),
-      itemCount: filteredDebtors.length,
+      itemCount: filteredPayments.length,
       separatorBuilder: (_, __) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
-        final debtor = filteredDebtors[index];
-        return _buildPaymentCard(debtor, index);
+        final payment = filteredPayments[index];
+        return _buildPaymentCard(payment, index);
       },
     );
   }
@@ -413,7 +373,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
     );
   }
 
-  Widget _buildPaymentCard(Map<String, dynamic> debtor, int index) {
+  Widget _buildPaymentCard(PaymentModel payment, int index) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -432,7 +392,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: _getStatusGradient(debtor['status']),
+              gradient: _getStatusGradient(payment.status),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(20),
                 topRight: Radius.circular(20),
@@ -444,7 +404,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                   radius: 24,
                   backgroundColor: Colors.white.withOpacity(0.2),
                   child: Text(
-                    debtor['client'][0],
+                    payment.client[0],
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -464,7 +424,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          debtor['category'],
+                          payment.category,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -474,7 +434,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        debtor['client'],
+                        payment.client,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -483,7 +443,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        debtor['service'],
+                        payment.service,
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.white,
@@ -500,7 +460,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    _getStatusIcon(debtor['status']),
+                    _getStatusIcon(payment.status),
                     color: Colors.white,
                     size: 24,
                   ),
@@ -519,8 +479,8 @@ class _PaymentsPageState extends State<PaymentsPage> {
                     Expanded(
                       child: _buildInfoItem(
                         icon: Icons.attach_money,
-                        label: "Valor",
-                        value: "MZN ${debtor['amount'].toStringAsFixed(0)}",
+                        label: "Valor Total",
+                        value: "MZN ${payment.totalAmount.toStringAsFixed(0)}",
                         color: const Color(0xFF6A4C93),
                       ),
                     ),
@@ -529,8 +489,8 @@ class _PaymentsPageState extends State<PaymentsPage> {
                       child: _buildInfoItem(
                         icon: Icons.calendar_today,
                         label: "Vencimento",
-                        value: _formatDate(debtor['dueDate']),
-                        color: _getDueDateColor(debtor['dueDate'], debtor['status']),
+                        value: _formatDate(payment.dueDate),
+                        color: _getDueDateColor(payment.dueDate, payment.status),
                       ),
                     ),
                   ],
@@ -540,26 +500,74 @@ class _PaymentsPageState extends State<PaymentsPage> {
                   children: [
                     Expanded(
                       child: _buildInfoItem(
-                        icon: Icons.payment,
-                        label: "Forma Pagamento",
-                        value: debtor['paymentMethod'],
+                        icon: Icons.payments,
+                        label: "Valor Pago",
+                        value: "MZN ${payment.paidAmount.toStringAsFixed(0)}",
                         color: const Color(0xFF4ECDC4),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildInfoItem(
-                        icon: Icons.event,
-                        label: "Data Serviço",
-                        value: _formatDate(debtor['serviceDate']),
-                        color: const Color(0xFFFFE66D),
+                        icon: Icons.pending,
+                        label: "Valor Restante",
+                        value: "MZN ${payment.remainingAmount.toStringAsFixed(0)}",
+                        color: payment.remainingAmount > 0 ? const Color(0xFFFFE66D) : const Color(0xFF4ECDC4),
                       ),
                     ),
                   ],
                 ),
+                if (payment.installments.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey[200]!),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Histórico de Pagamentos",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ...payment.installments.map((installment) => Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "MZN ${installment.amount.toStringAsFixed(0)}",
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                _formatDate(installment.date),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
+                      ],
+                    ),
+                  ),
+                ],
                 
                 // Botão de ação para pagamentos pendentes/atrasados
-                if (debtor['status'] == 'pendente' || debtor['status'] == 'atrasado') ...[
+                if (payment.status == 'pendente' || payment.status == 'atrasado') ...[
                   const SizedBox(height: 20),
                   Container(
                     width: double.infinity,
@@ -578,14 +586,14 @@ class _PaymentsPageState extends State<PaymentsPage> {
                           borderRadius: BorderRadius.circular(15),
                         ),
                       ),
-                      onPressed: () => _markAsPaid(index),
+                      onPressed: () => _showPaymentDialog(payment, index),
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+                          Icon(Icons.payment, color: Colors.white, size: 20),
                           SizedBox(width: 8),
                           Text(
-                            'Confirmar Pagamento',
+                            'Registrar Pagamento',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -738,12 +746,86 @@ class _PaymentsPageState extends State<PaymentsPage> {
     }
   }
 
-  void _markAsPaid(int index) {
+  void _showPaymentDialog(PaymentModel payment, int index) {
+    final TextEditingController amountController = TextEditingController(
+      text: payment.remainingAmount.toStringAsFixed(0)
+    );
+    DateTime selectedDate = DateTime.now();
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text(
+            'Registrar Pagamento',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: amountController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Valor do Pagamento (MZN)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const Text('Data: '),
+                  TextButton(
+                    onPressed: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2030),
+                      );
+                      if (picked != null) {
+                        setState(() => selectedDate = picked);
+                      }
+                    },
+                    child: Text(
+                      _formatDate(selectedDate),
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final amount = double.tryParse(amountController.text) ?? 0.0;
+                if (amount > 0) {
+                  _registerPayment(payment, index, amount, selectedDate);
+                  Navigator.pop(context);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4ECDC4),
+              ),
+              child: const Text('Confirmar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _registerPayment(PaymentModel payment, int index, double amount, DateTime date) {
     setState(() {
-      final debtorIndex = _debtors.indexWhere((d) => d == filteredDebtors[index]);
-      _debtors[debtorIndex]['status'] = 'pago';
+      final paymentIndex = _payments.indexWhere((p) => p == filteredPayments[index]);
+      _payments[paymentIndex].addPayment(amount, date);
     });
-    _showSuccessMessage('Pagamento confirmado com sucesso!');
+    _showSuccessMessage('Pagamento registrado com sucesso!');
   }
 
   void _showSuccessMessage(String message) {

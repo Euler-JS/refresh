@@ -20,6 +20,131 @@ class LocationDetail {
   });
 }
 
+// Novo modelo para pagamentos com suporte a parcelas
+class PaymentModel {
+  final String id;
+  final String client;
+  final String service;
+  final double totalAmount;
+  double paidAmount;
+  String status; // 'pendente', 'pago', 'atrasado'
+  final DateTime dueDate;
+  final DateTime serviceDate;
+  final String category;
+  final List<PaymentInstallment> installments;
+
+  PaymentModel({
+    required this.id,
+    required this.client,
+    required this.service,
+    required this.totalAmount,
+    this.paidAmount = 0.0,
+    required this.status,
+    required this.dueDate,
+    required this.serviceDate,
+    required this.category,
+    List<PaymentInstallment>? installments,
+  }) : installments = installments ?? [];
+
+  double get remainingAmount => totalAmount - paidAmount;
+
+  void addPayment(double amount, DateTime date) {
+    paidAmount += amount;
+    installments.add(PaymentInstallment(amount: amount, date: date));
+    if (paidAmount >= totalAmount) {
+      status = 'pago';
+    }
+  }
+
+  PaymentModel copyWith({
+    String? id,
+    String? client,
+    String? service,
+    double? totalAmount,
+    double? paidAmount,
+    String? status,
+    DateTime? dueDate,
+    DateTime? serviceDate,
+    String? category,
+    List<PaymentInstallment>? installments,
+  }) {
+    return PaymentModel(
+      id: id ?? this.id,
+      client: client ?? this.client,
+      service: service ?? this.service,
+      totalAmount: totalAmount ?? this.totalAmount,
+      paidAmount: paidAmount ?? this.paidAmount,
+      status: status ?? this.status,
+      dueDate: dueDate ?? this.dueDate,
+      serviceDate: serviceDate ?? this.serviceDate,
+      category: category ?? this.category,
+      installments: installments ?? List.from(this.installments),
+    );
+  }
+}
+
+class PaymentInstallment {
+  final double amount;
+  final DateTime date;
+
+  PaymentInstallment({
+    required this.amount,
+    required this.date,
+  });
+}
+
+// Dados mock atualizados
+List<PaymentModel> paymentItems = [
+  PaymentModel(
+    id: '1',
+    client: 'Ana Silva',
+    service: 'Ornamentação Casamento',
+    totalAmount: 15000.0,
+    paidAmount: 5000.0, // Exemplo com pagamento parcial
+    status: 'pendente',
+    dueDate: DateTime.now().add(const Duration(days: 5)),
+    serviceDate: DateTime.now().subtract(const Duration(days: 2)),
+    category: 'Casamento',
+    installments: [
+      PaymentInstallment(amount: 5000.0, date: DateTime.now().subtract(const Duration(days: 1))),
+    ],
+  ),
+  PaymentModel(
+    id: '2',
+    client: 'Carlos Mendes',
+    service: 'Decoração Baixa',
+    totalAmount: 8000.0,
+    status: 'atrasado',
+    dueDate: DateTime.now().subtract(const Duration(days: 3)),
+    serviceDate: DateTime.now().subtract(const Duration(days: 10)),
+    category: 'Evento Corporativo',
+  ),
+  PaymentModel(
+    id: '3',
+    client: 'João Paulo',
+    service: 'Buffet Festa',
+    totalAmount: 12000.0,
+    paidAmount: 12000.0,
+    status: 'pago',
+    dueDate: DateTime.now().subtract(const Duration(days: 1)),
+    serviceDate: DateTime.now().subtract(const Duration(days: 8)),
+    category: 'Aniversário',
+    installments: [
+      PaymentInstallment(amount: 12000.0, date: DateTime.now().subtract(const Duration(days: 1))),
+    ],
+  ),
+  PaymentModel(
+    id: '4',
+    client: 'Maria Santos',
+    service: 'Chá de Bebê',
+    totalAmount: 5000.0,
+    status: 'pendente',
+    dueDate: DateTime.now().add(const Duration(days: 7)),
+    serviceDate: DateTime.now().subtract(const Duration(days: 1)),
+    category: 'Chá de Bebê',
+  ),
+];
+
 List<LocationDetail> locationItems = [
   LocationDetail(
     image: "Images/thebridge.png",
