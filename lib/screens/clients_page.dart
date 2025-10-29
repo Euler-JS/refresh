@@ -211,14 +211,14 @@ class _ClientsPageState extends State<ClientsPage> {
                 ],
               ),
               // const SizedBox(height: 24),
-              const Text(
-                "Meus Clientes",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
+              // const Text(
+              //   "Meus Clientes",
+              //   style: TextStyle(
+              //     fontSize: 28,
+              //     fontWeight: FontWeight.bold,
+              //     color: Colors.white,
+              //   ),
+              // ),
               const SizedBox(height: 8),
               Text(
                 "Gerencie seu relacionamento com clientes",

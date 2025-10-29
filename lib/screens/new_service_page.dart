@@ -113,7 +113,7 @@ class _NewServicePageState extends State<NewServicePage> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(0),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),
@@ -125,7 +125,7 @@ class _NewServicePageState extends State<NewServicePage> {
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(0),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),
@@ -135,14 +135,14 @@ class _NewServicePageState extends State<NewServicePage> {
                 ],
               ),
               // const SizedBox(height: 24),
-              const Text(
-                "Novo Serviço",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
+              // const Text(
+              //   "Novo Serviço",
+              //   style: TextStyle(
+              //     fontSize: 28,
+              //     fontWeight: FontWeight.bold,
+              //     color: Colors.white,
+              //   ),
+              // ),
               const SizedBox(height: 8),
               Text(
                 "Adicione um novo atendimento",

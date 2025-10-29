@@ -157,14 +157,14 @@ class _SchedulePageState extends State<SchedulePage> {
                 ],
               ),
               // const SizedBox(height: 24),
-              const Text(
-                "Minha Agenda",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
+              // const Text(
+              //   "Minha Agenda",
+              //   style: TextStyle(
+              //     fontSize: 28,
+              //     fontWeight: FontWeight.bold,
+              //     color: Colors.white,
+              //   ),
+              // ),
               const SizedBox(height: 8),
               Text(
                 "Gerencie seus atendimentos e solicitações",
@@ -174,7 +174,7 @@ class _SchedulePageState extends State<SchedulePage> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 0),
               _buildStatsRow(),
             ],
           ),

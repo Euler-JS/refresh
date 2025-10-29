@@ -165,15 +165,15 @@ class _PaymentsPageState extends State<PaymentsPage> {
                 ],
               ),
               // const SizedBox(height: 24),
-              const Text(
-                "Receber Pagamentos",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
+              // const Text(
+              //   "Receber Pagamentos",
+              //   style: TextStyle(
+              //     fontSize: 28,
+              //     fontWeight: FontWeight.bold,
+              //     color: Colors.white,
+              //   ),
+              // ),
+              const SizedBox(height: 0),
               Text(
                 "Gerencie seus recebimentos pendentes",
                 style: TextStyle(

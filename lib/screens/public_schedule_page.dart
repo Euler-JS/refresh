@@ -151,14 +151,14 @@ class _PublicSchedulePageState extends State<PublicSchedulePage> {
                 ],
               ),
               const SizedBox(height: 12),
-              const Text(
-                "Agenda Pública",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
+              // const Text(
+              //   "Agenda Pública",
+              //   style: TextStyle(
+              //     fontSize: 22,
+              //     fontWeight: FontWeight.bold,
+              //     color: Colors.white,
+              //   ),
+              // ),
               // const SizedBox(height: 8),
               Text(
                 "Veja minha disponibilidade e solicite serviços",
