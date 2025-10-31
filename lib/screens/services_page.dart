@@ -1,60 +1,58 @@
 import 'package:flutter/material.dart';
-import '../models/client.dart';
-import '../services/client_storage_service.dart';
-import 'add_client_page.dart';
-import 'edit_client_page.dart';
+import '../models/service.dart';
+import '../services/service_storage_service.dart';
+import 'add_service_page.dart';
+import 'edit_service_page.dart';
 
-class ClientsPage extends StatefulWidget {
-  const ClientsPage({super.key});
+class ServicesPage extends StatefulWidget {
+  const ServicesPage({super.key});
 
   @override
-  State<ClientsPage> createState() => _ClientsPageState();
+  State<ServicesPage> createState() => _ServicesPageState();
 }
 
-class _ClientsPageState extends State<ClientsPage> {
+class _ServicesPageState extends State<ServicesPage> {
   String selectedFilter = 'Todos';
-  final List<String> filters = ['Todos', 'Ativos', 'Novos', 'VIPs'];
+  final List<String> filters = ['Todos', 'Hoje', 'Próximos', 'Pendentes', 'Em Andamento', 'Concluídos'];
 
-  final ClientStorageService _storageService = ClientStorageService();
-  List<Client> _clients = [];
+  final ServiceStorageService _storageService = ServiceStorageService.instance;
+  List<Service> _services = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadClients();
+    _loadServices();
   }
 
-  Future<void> _addNewClient() async {
+  Future<void> _addNewService() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const AddClientPage()),
+      MaterialPageRoute(builder: (context) => const AddServicePage()),
     );
 
     if (result == true) {
-      // Recarregar lista de clientes
-      await _loadClients();
+      await _loadServices();
     }
   }
 
-  Future<void> _editClient(Client client) async {
+  Future<void> _editService(Service service) async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => EditClientPage(client: client)),
+      MaterialPageRoute(builder: (context) => EditServicePage(service: service)),
     );
 
     if (result == true) {
-      // Recarregar lista de clientes
-      await _loadClients();
+      await _loadServices();
     }
   }
 
-  Future<void> _loadClients() async {
+  Future<void> _loadServices() async {
     setState(() => _isLoading = true);
     try {
-      final clients = await _storageService.loadClients();
+      final services = await _storageService.loadServices();
       setState(() {
-        _clients = clients;
+        _services = services;
         _isLoading = false;
       });
     } catch (e) {
@@ -63,21 +61,29 @@ class _ClientsPageState extends State<ClientsPage> {
     }
   }
 
-  List<Client> get filteredClients {
+  List<Service> get filteredServices {
     switch (selectedFilter) {
-      case 'Ativos':
-        return _clients.where((c) => c.type == 'Ativo').toList();
-      case 'Novos':
-        return _clients.where((c) => c.type == 'Novo').toList();
-      case 'VIPs':
-        return _clients.where((c) => c.type == 'VIP').toList();
+      case 'Hoje':
+        return _services.where((s) => s.isToday).toList();
+      case 'Próximos':
+        return _services.where((s) => s.isFuture).toList();
+      case 'Pendentes':
+        return _services.where((s) => s.status == 'pendente').toList();
+      case 'Em Andamento':
+        return _services.where((s) => s.status == 'em_andamento').toList();
+      case 'Concluídos':
+        return _services.where((s) => s.status == 'concluido').toList();
       default:
-        return _clients;
+        return _services;
     }
   }
 
   double get totalRevenue {
-    return _clients.fold(0.0, (sum, client) => sum + client.totalSpent);
+    return _services.where((s) => s.status == 'concluido').fold(0.0, (sum, service) => sum + service.price);
+  }
+
+  double get pendingRevenue {
+    return _services.where((s) => s.status == 'confirmado' || s.status == 'em_andamento').fold(0.0, (sum, service) => sum + service.price);
   }
 
   @override
@@ -88,9 +94,7 @@ class _ClientsPageState extends State<ClientsPage> {
         width: MediaQuery.of(context).size.width,
         child: Stack(
           children: [
-            // Header com gradiente
             _buildHeader(context),
-            // Conteúdo principal
             Positioned(
               top: 298,
               left: 0,
@@ -109,9 +113,9 @@ class _ClientsPageState extends State<ClientsPage> {
                     const SizedBox(height: 24),
                     _buildFilters(),
                     const SizedBox(height: 16),
-                    Expanded(child: _isLoading 
+                    Expanded(child: _isLoading
                       ? const Center(child: CircularProgressIndicator())
-                      : _buildClientsList()),
+                      : _buildServicesList()),
                   ],
                 ),
               ),
@@ -120,9 +124,9 @@ class _ClientsPageState extends State<ClientsPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addNewClient,
+        onPressed: _addNewService,
         backgroundColor: const Color(0xFF6A4C93),
-        child: const Icon(Icons.person_add, color: Colors.white),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -171,18 +175,9 @@ class _ClientsPageState extends State<ClientsPage> {
                   ),
                 ],
               ),
-              // const SizedBox(height: 24),
-              // const Text(
-              //   "Meus Clientes",
-              //   style: TextStyle(
-              //     fontSize: 28,
-              //     fontWeight: FontWeight.bold,
-              //     color: Colors.white,
-              //   ),
-              // ),
               const SizedBox(height: 8),
               Text(
-                "Gerencie seu relacionamento com clientes",
+                "Gerencie seus serviços",
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.white.withOpacity(0.9),
@@ -201,29 +196,29 @@ class _ClientsPageState extends State<ClientsPage> {
   }
 
   Widget _buildStatsRow() {
-    final totalClients = _clients.length;
-    final vipClients = _clients.where((c) => c.type == 'VIP').length;
-    final newClients = _clients.where((c) => c.type == 'Novo').length;
-    
+    final totalServices = _services.length;
+    final todayServices = _services.where((s) => s.isToday).length;
+    final upcomingServices = _services.where((s) => s.isFuture).length;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _buildStatItem(
-          icon: Icons.people,
-          value: totalClients.toString(),
+          icon: Icons.event,
+          value: totalServices.toString(),
           label: "Total",
           color: const Color(0xFF4ECDC4),
         ),
         _buildStatItem(
-          icon: Icons.star,
-          value: vipClients.toString(),
-          label: "VIPs",
+          icon: Icons.today,
+          value: todayServices.toString(),
+          label: "Hoje",
           color: const Color(0xFFFFE66D),
         ),
         _buildStatItem(
-          icon: Icons.person_add,
-          value: newClients.toString(),
-          label: "Novos",
+          icon: Icons.schedule,
+          value: upcomingServices.toString(),
+          label: "Próximos",
           color: const Color(0xFF95E1D3),
         ),
       ],
@@ -296,20 +291,19 @@ class _ClientsPageState extends State<ClientsPage> {
   }
 
   Widget _buildRevenueCard() {
-    final avgPerClient = totalRevenue / _clients.length;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _buildStatItem(
           icon: Icons.attach_money,
           value: "MZN ${totalRevenue.toStringAsFixed(0)}",
-          label: "Receita Total",
+          label: "Recebido",
           color: const Color(0xFF4ECDC4),
         ),
         _buildStatItem(
-          icon: Icons.bar_chart,
-          value: "MZN ${avgPerClient.toStringAsFixed(0)}",
-          label: "Média/Cliente",
+          icon: Icons.pending,
+          value: "MZN ${pendingRevenue.toStringAsFixed(0)}",
+          label: "Pendente",
           color: const Color(0xFFFFE66D),
         ),
       ],
@@ -327,7 +321,7 @@ class _ClientsPageState extends State<ClientsPage> {
           itemBuilder: (context, index) {
             final filter = filters[index];
             final isSelected = selectedFilter == filter;
-            
+
             return GestureDetector(
               onTap: () {
                 setState(() {
@@ -338,13 +332,13 @@ class _ClientsPageState extends State<ClientsPage> {
                 margin: const EdgeInsets.only(right: 12),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 decoration: BoxDecoration(
-                  color: isSelected 
-                    ? const Color(0xFF6A4C93) 
+                  color: isSelected
+                    ? const Color(0xFF6A4C93)
                     : Colors.grey[100],
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isSelected 
-                      ? const Color(0xFF6A4C93) 
+                    color: isSelected
+                      ? const Color(0xFF6A4C93)
                       : Colors.grey[300]!,
                   ),
                 ),
@@ -353,8 +347,8 @@ class _ClientsPageState extends State<ClientsPage> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: isSelected 
-                      ? Colors.white 
+                    color: isSelected
+                      ? Colors.white
                       : Colors.grey[700],
                   ),
                 ),
@@ -366,18 +360,18 @@ class _ClientsPageState extends State<ClientsPage> {
     );
   }
 
-  Widget _buildClientsList() {
-    if (filteredClients.isEmpty) {
+  Widget _buildServicesList() {
+    if (filteredServices.isEmpty) {
       return _buildEmptyState();
     }
 
     return ListView.separated(
       padding: const EdgeInsets.all(20),
-      itemCount: filteredClients.length,
+      itemCount: filteredServices.length,
       separatorBuilder: (_, __) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
-        final client = filteredClients[index];
-        return _buildClientCard(client);
+        final service = filteredServices[index];
+        return _buildServiceCard(service);
       },
     );
   }
@@ -394,14 +388,14 @@ class _ClientsPageState extends State<ClientsPage> {
               borderRadius: BorderRadius.circular(50),
             ),
             child: Icon(
-              Icons.people_outline,
+              Icons.event_note,
               size: 48,
               color: Colors.grey[400],
             ),
           ),
           const SizedBox(height: 16),
           Text(
-            "Nenhum cliente encontrado",
+            "Nenhum serviço encontrado",
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -421,7 +415,7 @@ class _ClientsPageState extends State<ClientsPage> {
     );
   }
 
-  Widget _buildClientCard(Client client) {
+  Widget _buildServiceCard(Service service) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -440,7 +434,7 @@ class _ClientsPageState extends State<ClientsPage> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: _getClientTypeGradient(client.type),
+              gradient: _getStatusGradient(service.status),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(20),
                 topRight: Radius.circular(20),
@@ -451,13 +445,10 @@ class _ClientsPageState extends State<ClientsPage> {
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: Colors.white.withOpacity(0.2),
-                  child: Text(
-                    client.name[0],
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                  child: Icon(
+                    Service.getStatusIcon(service.status),
+                    color: Colors.white,
+                    size: 28,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -469,7 +460,7 @@ class _ClientsPageState extends State<ClientsPage> {
                         children: [
                           Expanded(
                             child: Text(
-                              client.name,
+                              service.title,
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -484,10 +475,10 @@ class _ClientsPageState extends State<ClientsPage> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              client.type,
+                              service.status.toUpperCase(),
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 12,
+                                fontSize: 10,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -497,14 +488,17 @@ class _ClientsPageState extends State<ClientsPage> {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Icon(Icons.phone, color: Colors.white, size: 16),
+                          const Icon(Icons.person, color: Colors.white, size: 16),
                           const SizedBox(width: 6),
-                          Text(
-                            client.phone,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
+                          Expanded(
+                            child: Text(
+                              service.clientName,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -514,12 +508,12 @@ class _ClientsPageState extends State<ClientsPage> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.edit, color: Colors.white, size: 24),
-                  onPressed: () => _editClient(client),
+                  onPressed: () => _editService(service),
                 ),
               ],
             ),
           ),
-          
+
           // Corpo do card
           Padding(
             padding: const EdgeInsets.all(20),
@@ -530,17 +524,17 @@ class _ClientsPageState extends State<ClientsPage> {
                     Expanded(
                       child: _buildInfoItem(
                         icon: Icons.attach_money,
-                        label: "Total Gasto",
-                        value: "MZN ${client.totalSpent.toStringAsFixed(0)}",
+                        label: "Valor",
+                        value: "MZN ${service.price.toStringAsFixed(0)}",
                         color: const Color(0xFF6A4C93),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildInfoItem(
-                        icon: Icons.event,
-                        label: "Serviços",
-                        value: "${client.servicesCount}",
+                        icon: Icons.category,
+                        label: "Categoria",
+                        value: service.category,
                         color: const Color(0xFF4ECDC4),
                       ),
                     ),
@@ -552,8 +546,8 @@ class _ClientsPageState extends State<ClientsPage> {
                     Expanded(
                       child: _buildInfoItem(
                         icon: Icons.calendar_today,
-                        label: "Cliente desde",
-                        value: _formatDate(client.joinDate),
+                        label: "Data",
+                        value: _formatDate(service.date),
                         color: const Color(0xFFFFE66D),
                       ),
                     ),
@@ -561,95 +555,81 @@ class _ClientsPageState extends State<ClientsPage> {
                     Expanded(
                       child: _buildInfoItem(
                         icon: Icons.schedule,
-                        label: "Último serviço",
-                        value: client.lastService != null 
-                          ? _formatDate(client.lastService!) 
-                          : "Nenhum",
+                        label: "Horário",
+                        value: "${service.time.hour.toString().padLeft(2, '0')}:${service.time.minute.toString().padLeft(2, '0')}",
                         color: const Color(0xFFFF6B6B),
                       ),
                     ),
                   ],
                 ),
-                
-                const SizedBox(height: 20),
-                
-                // Histórico de solicitações
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Histórico de Serviços",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2C2C2C),
-                      ),
+
+                if (service.description != null && service.description!.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const SizedBox(height: 12),
-                    ...client.requests.map<Widget>((request) {
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: _getStatusColor(request.status).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: _getStatusColor(request.status).withOpacity(0.3),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Descrição",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2C2C2C),
                           ),
                         ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              _getStatusIcon(request.status),
-                              color: _getStatusColor(request.status),
-                              size: 20,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    request.title,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  Text(
-                                    "MZN ${request.value} • ${_formatDate(request.date)}",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: _getStatusColor(request.status),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                request.status.toUpperCase(),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
+                        const SizedBox(height: 4),
+                        Text(
+                          service.description!,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
                         ),
-                      );
-                    }).toList(),
-                  ],
-                ),
-                
+                      ],
+                    ),
+                  ),
+                ],
+
                 const SizedBox(height: 16),
-                
+
+                // Localização
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6A4C93).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on,
+                        color: Color(0xFF6A4C93),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          service.location,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF6A4C93),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
                 // Botões de ação
                 Row(
                   children: [
@@ -671,7 +651,7 @@ class _ClientsPageState extends State<ClientsPage> {
                             Icon(Icons.phone, size: 20),
                             SizedBox(width: 8),
                             Text(
-                              'Ligar',
+                              'Contato',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ],
@@ -694,10 +674,10 @@ class _ClientsPageState extends State<ClientsPage> {
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.message, size: 20),
+                            Icon(Icons.check_circle, size: 20),
                             SizedBox(width: 8),
                             Text(
-                              'Mensagem',
+                              'Concluir',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ],
@@ -755,19 +735,27 @@ class _ClientsPageState extends State<ClientsPage> {
     );
   }
 
-  LinearGradient _getClientTypeGradient(String type) {
-    switch (type) {
-      case 'VIP':
+  LinearGradient _getStatusGradient(String status) {
+    switch (status) {
+      case 'pendente':
         return const LinearGradient(
           colors: [Color(0xFFFFE66D), Color(0xFFFFED88)],
         );
-      case 'Ativo':
+      case 'confirmado':
         return const LinearGradient(
           colors: [Color(0xFF4ECDC4), Color(0xFF7BDBD4)],
         );
-      case 'Novo':
+      case 'em_andamento':
+        return const LinearGradient(
+          colors: [Color(0xFF6A4C93), Color(0xFF8E44AD)],
+        );
+      case 'concluido':
         return const LinearGradient(
           colors: [Color(0xFF95E1D3), Color(0xFFB8E6D3)],
+        );
+      case 'cancelado':
+        return const LinearGradient(
+          colors: [Color(0xFFFF6B6B), Color(0xFFFF8A8A)],
         );
       default:
         return const LinearGradient(
@@ -776,36 +764,10 @@ class _ClientsPageState extends State<ClientsPage> {
     }
   }
 
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'aprovado':
-        return const Color(0xFF4ECDC4);
-      case 'pendente':
-        return const Color(0xFFFFE66D);
-      case 'rejeitado':
-        return const Color(0xFFFF6B6B);
-      default:
-        return Colors.grey;
-    }
-  }
-
-  IconData _getStatusIcon(String status) {
-    switch (status) {
-      case 'aprovado':
-        return Icons.check_circle;
-      case 'pendente':
-        return Icons.hourglass_top;
-      case 'rejeitado':
-        return Icons.cancel;
-      default:
-        return Icons.info;
-    }
-  }
-
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date).inDays;
-    
+
     if (difference == 0) {
       return "Hoje";
     } else if (difference == 1) {
@@ -816,7 +778,7 @@ class _ClientsPageState extends State<ClientsPage> {
       final months = (difference / 30).floor();
       return "${months}m atrás";
     } else {
-      return "${date.day}/${date.month}/${date.year}";
+      return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
     }
   }
 }

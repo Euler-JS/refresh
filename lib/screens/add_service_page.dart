@@ -2,26 +2,27 @@ import 'package:flutter/material.dart';
 import '../models/service.dart';
 import '../services/service_storage_service.dart';
 
-class NewServicePage extends StatefulWidget {
-  const NewServicePage({super.key});
+class AddServicePage extends StatefulWidget {
+  const AddServicePage({super.key});
 
   @override
-  State<NewServicePage> createState() => _NewServicePageState();
+  State<AddServicePage> createState() => _AddServicePageState();
 }
 
-class _NewServicePageState extends State<NewServicePage> {
+class _AddServicePageState extends State<AddServicePage> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _clientController = TextEditingController();
   final _locationController = TextEditingController();
   final _priceController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final ServiceStorageService _storageService = ServiceStorageService.instance;
-  
+
   DateTime? _date;
   TimeOfDay? _time;
   String _selectedCategory = 'Ornamentação';
-  
+
+  final ServiceStorageService _storageService = ServiceStorageService.instance;
+
   final List<String> _categories = [
     'Ornamentação',
     'Evento Corporativo',
@@ -41,7 +42,7 @@ class _NewServicePageState extends State<NewServicePage> {
           children: [
             // Header com gradiente
             _buildHeader(context),
-            
+
             // Conteúdo principal
             Positioned(
               top: 160,
@@ -67,17 +68,17 @@ class _NewServicePageState extends State<NewServicePage> {
                         _buildSectionTitle("Informações Básicas"),
                         const SizedBox(height: 16),
                         _buildBasicInfoCard(),
-                        
+
                         const SizedBox(height: 24),
                         _buildSectionTitle("Data e Horário"),
                         const SizedBox(height: 16),
                         _buildDateTimeCard(),
-                        
+
                         const SizedBox(height: 24),
                         _buildSectionTitle("Detalhes do Serviço"),
                         const SizedBox(height: 16),
                         _buildDetailsCard(),
-                        
+
                         const SizedBox(height: 32),
                         _buildSaveButton(),
                         const SizedBox(height: 24),
@@ -137,15 +138,6 @@ class _NewServicePageState extends State<NewServicePage> {
                   ),
                 ],
               ),
-              // const SizedBox(height: 24),
-              // const Text(
-              //   "Novo Serviço",
-              //   style: TextStyle(
-              //     fontSize: 28,
-              //     fontWeight: FontWeight.bold,
-              //     color: Colors.white,
-              //   ),
-              // ),
               const SizedBox(height: 8),
               Text(
                 "Adicione um novo atendimento",
@@ -195,7 +187,7 @@ class _NewServicePageState extends State<NewServicePage> {
             validator: (v) => v == null || v.isEmpty ? 'Informe o título' : null,
           ),
           const SizedBox(height: 16),
-          
+
           _buildCustomTextField(
             controller: _clientController,
             label: "Nome do Cliente",
@@ -203,7 +195,7 @@ class _NewServicePageState extends State<NewServicePage> {
             validator: (v) => v == null || v.isEmpty ? 'Informe o cliente' : null,
           ),
           const SizedBox(height: 16),
-          
+
           _buildCategoryDropdown(),
         ],
       ),
@@ -261,7 +253,7 @@ class _NewServicePageState extends State<NewServicePage> {
             validator: (v) => v == null || v.isEmpty ? 'Informe o local' : null,
           ),
           const SizedBox(height: 16),
-          
+
           _buildCustomTextField(
             controller: _priceController,
             label: "Valor (MZN)",
@@ -270,7 +262,7 @@ class _NewServicePageState extends State<NewServicePage> {
             validator: (v) => v == null || v.isEmpty ? 'Informe o valor' : null,
           ),
           const SizedBox(height: 16),
-          
+
           _buildCustomTextField(
             controller: _descriptionController,
             label: "Descrição do Serviço",
@@ -480,7 +472,7 @@ class _NewServicePageState extends State<NewServicePage> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF4ECDC4).withOpacity(0.1),
+              color: const Color(0xFF4ECDC4).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
@@ -569,8 +561,7 @@ class _NewServicePageState extends State<NewServicePage> {
       _formKey.currentState!.save();
 
       try {
-        final newService = Service(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+        final service = Service.create(
           title: _titleController.text.trim(),
           clientName: _clientController.text.trim(),
           category: _selectedCategory,
@@ -578,23 +569,24 @@ class _NewServicePageState extends State<NewServicePage> {
           time: _time!,
           location: _locationController.text.trim(),
           price: double.parse(_priceController.text),
-          description: _descriptionController.text.trim(),
-          status: 'agendado',
-          createdAt: DateTime.now(),
+          description: _descriptionController.text.trim().isEmpty
+              ? null
+              : _descriptionController.text.trim(),
         );
 
-        await _storageService.addService(newService);
+        await _storageService.addService(service);
+
         _showSuccessSnackBar();
 
         // Voltar para página anterior após delay
         Future.delayed(const Duration(milliseconds: 1500), () {
-          Navigator.pop(context);
+          Navigator.pop(context, true);
         });
       } catch (e) {
-        _showErrorSnackBar();
+        _showErrorSnackBar('Erro ao salvar serviço: $e');
       }
     } else {
-      _showErrorSnackBar();
+      _showErrorSnackBar('Preencha todos os campos obrigatórios!');
     }
   }
 
@@ -622,18 +614,20 @@ class _NewServicePageState extends State<NewServicePage> {
     );
   }
 
-  void _showErrorSnackBar() {
+  void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.error_outline, color: Colors.white),
-              SizedBox(width: 12),
-              Text(
-                'Preencha todos os campos obrigatórios!',
-                style: TextStyle(fontWeight: FontWeight.w600),
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
               ),
             ],
           ),

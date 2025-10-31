@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'Model/service_models.dart';
+import 'Model/model.dart';
 import 'screens/payments_page.dart';
 import 'screens/schedule_page.dart';
 import 'widgets/service_card.dart';
-import 'widgets/stats_section.dart';
 import 'widgets/quick_actions.dart';
 import 'utils/responsive_text.dart';
+import 'services/service_storage_service.dart';
+import 'services/payment_storage_service.dart';
+import 'models/service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,8 +17,12 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   int selectedIndex = 0;
+  List<Service> _services = [];
+  List<PaymentModel> _payments = [];
+  bool _isLoading = true;
+
   List<String> categoryList = [
     "Hoje",
     "Esta Semana", 
@@ -24,11 +31,121 @@ class _HomePageState extends State<HomePage> {
     "Concluídos",
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _loadData();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // App voltou ao foreground, recarregar dados
+      _loadData();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Recarregar dados sempre que a tela for acessada
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    if (!mounted) return; // Verificar se o widget ainda está montado
+    
+    setState(() => _isLoading = true);
+    
+    try {
+      final services = await ServiceStorageService.instance.loadServices();
+      final payments = await PaymentStorageService.instance.loadPayments();
+      
+      if (mounted) { // Verificar novamente se o widget ainda está montado
+        setState(() {
+          _services = services;
+          _payments = payments;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Erro ao carregar dados: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  ServiceItem _convertServiceToServiceItem(Service service) {
+    ServiceStatus status;
+    switch (service.status) {
+      case 'pendente':
+        status = ServiceStatus.pending;
+        break;
+      case 'confirmado':
+        status = ServiceStatus.confirmed;
+        break;
+      case 'em_andamento':
+        status = ServiceStatus.inProgress;
+        break;
+      case 'concluido':
+        status = ServiceStatus.completed;
+        break;
+      case 'cancelado':
+        status = ServiceStatus.cancelled;
+        break;
+      default:
+        status = ServiceStatus.pending;
+    }
+
+    return ServiceItem(
+      id: service.id,
+      clientName: service.clientName,
+      serviceType: service.category,
+      location: service.location,
+      date: service.date,
+      time: '${service.time.hour.toString().padLeft(2, '0')}:${service.time.minute.toString().padLeft(2, '0')}',
+      price: service.price,
+      status: status,
+      description: service.description ?? '',
+    );
+  }
+
+  int get pendingServicesCount {
+    if (_isLoading) return 0;
+    return _services.where((service) => 
+      service.status == 'pendente' || service.status == 'confirmado'
+    ).length;
+  }
+
+  int get completedServicesCount {
+    if (_isLoading) return 0;
+    return _services.where((service) => service.status == 'concluido').length;
+  }
+
+  double get totalAmountToReceive {
+    if (_isLoading) return 0.0;
+    return _payments
+        .where((payment) => payment.status == 'pendente' || payment.status == 'atrasado')
+        .fold(0.0, (sum, payment) => sum + payment.remainingAmount);
+  }
+
   List<ServiceItem> get filteredServices {
+    if (_isLoading) return [];
+    
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final weekStart = today.subtract(Duration(days: today.weekday - 1));
     final weekEnd = weekStart.add(const Duration(days: 6));
+
+    final serviceItems = _services.map(_convertServiceToServiceItem).toList();
 
     switch (selectedIndex) {
       case 0: // Hoje
@@ -72,7 +189,6 @@ class _HomePageState extends State<HomePage> {
     // Get screen dimensions
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    final safeAreaTop = MediaQuery.of(context).padding.top;
     final safeAreaBottom = MediaQuery.of(context).padding.bottom;
     
     // Calculate responsive heights - adjusted for filters
@@ -140,19 +256,21 @@ class _HomePageState extends State<HomePage> {
               left: 0,
               right: 0,
               bottom: bottomSectionHeight, // Anchor to the bottom section to avoid overlap
-              child: filteredServices.isEmpty 
-                ? _buildEmptyState()
-                : ListView.builder(
-                    itemCount: filteredServices.length,
-                    scrollDirection: Axis.horizontal,
-                    padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03), // Responsive padding
-                    clipBehavior: Clip.none, // Allow cards to overflow if needed
-                    physics: const BouncingScrollPhysics(),
-                    itemBuilder: (context, index) {
-                      ServiceItem service = filteredServices[index];
-                      return ServiceCard(service: service);
-                    },
-                  ),
+              child: _isLoading 
+                ? _buildLoadingState()
+                : filteredServices.isEmpty 
+                  ? _buildEmptyState()
+                  : ListView.builder(
+                      itemCount: filteredServices.length,
+                      scrollDirection: Axis.horizontal,
+                      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03), // Responsive padding
+                      clipBehavior: Clip.none, // Allow cards to overflow if needed
+                      physics: const BouncingScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        ServiceItem service = filteredServices[index];
+                        return ServiceCard(service: service);
+                      },
+                    ),
             ),
             
             // Bottom section (quick actions) - adjusted 20% lower
@@ -230,6 +348,46 @@ class _HomePageState extends State<HomePage> {
                 fontSize: 14,
                 color: Colors.white.withOpacity(0.7),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    return Center(
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.08), // 8% of screen width
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(screenWidth * 0.05), // 5% of screen width
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(50),
+              ),
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Colors.white.withOpacity(0.7)
+                ),
+                strokeWidth: 3,
+              ),
+            ),
+            SizedBox(height: screenHeight * 0.02), // 2% of screen height
+            Text(
+              "Carregando dados...",
+              style: ResponsiveText.style(
+                context: context,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withOpacity(0.9),
+              ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -353,64 +511,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildGreetingSection() {
-    String greeting = _getGreetingText();
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Olá, Maria! 👋",
-          style: ResponsiveText.style(
-            context: context,
-            fontSize: 28, // Larger font size to match design
-            fontWeight: FontWeight.w700, // Slightly lighter weight to match design
-            color: Colors.white,
-            letterSpacing: 0.2, // Add slight letter spacing for better readability
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          greeting,
-          style: ResponsiveText.style(
-            context: context,
-            fontSize: 15,
-            color: Colors.white.withOpacity(0.9),
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _getGreetingText() {
-    final count = filteredServices.length;
-    
-    switch (selectedIndex) {
-      case 0:
-        return count == 0 
-          ? "Nenhum atendimento hoje"
-          : "Você tem $count ${count == 1 ? 'atendimento' : 'atendimentos'} hoje";
-      case 1:
-        return count == 0 
-          ? "Nenhum atendimento esta semana"
-          : "$count ${count == 1 ? 'atendimento' : 'atendimentos'} esta semana";
-      case 2:
-        return count == 0 
-          ? "Nenhum atendimento próximo"
-          : "$count ${count == 1 ? 'atendimento próximo' : 'atendimentos próximos'}";
-      case 3:
-        return count == 0 
-          ? "Nenhum atendimento atrasado"
-          : "$count ${count == 1 ? 'atendimento atrasado' : 'atendimentos atrasados'}";
-      case 4:
-        return count == 0 
-          ? "Nenhum atendimento concluído"
-          : "$count ${count == 1 ? 'atendimento concluído' : 'atendimentos concluídos'}";
-      default:
-        return "Você tem $count ${count == 1 ? 'atendimento' : 'atendimentos'}";
-    }
-  }
-
   Widget _buildStatsSection() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -427,7 +527,7 @@ class _HomePageState extends State<HomePage> {
           child: _buildStatCard(
             icon: Icons.schedule,
             title: "Pendentes",
-            value: "5",
+            value: pendingServicesCount.toString(),
             color: const Color(0xFFFF6B6B),
           ),
         ),
@@ -443,7 +543,7 @@ class _HomePageState extends State<HomePage> {
           child: _buildStatCard(
             icon: Icons.check_circle,
             title: "Concluídos",
-            value: "23",
+            value: completedServicesCount.toString(),
             color: const Color(0xFF4ECDC4),
           ),
         ),
@@ -459,7 +559,7 @@ class _HomePageState extends State<HomePage> {
           child: _buildStatCard(
             icon: Icons.payments,
             title: "Receber",
-            value: "12k",
+            value: "MZN ${totalAmountToReceive.toStringAsFixed(0)}",
             color: const Color(0xFFFFE66D),
           ),
         ),
@@ -558,9 +658,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildFilterChips() {
-    // Get screen dimensions
-    final screenWidth = MediaQuery.of(context).size.width;
-    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

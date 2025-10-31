@@ -2,26 +2,30 @@ import 'package:flutter/material.dart';
 import '../models/service.dart';
 import '../services/service_storage_service.dart';
 
-class NewServicePage extends StatefulWidget {
-  const NewServicePage({super.key});
+class EditServicePage extends StatefulWidget {
+  final Service service;
+
+  const EditServicePage({super.key, required this.service});
 
   @override
-  State<NewServicePage> createState() => _NewServicePageState();
+  State<EditServicePage> createState() => _EditServicePageState();
 }
 
-class _NewServicePageState extends State<NewServicePage> {
+class _EditServicePageState extends State<EditServicePage> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _clientController = TextEditingController();
   final _locationController = TextEditingController();
   final _priceController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final ServiceStorageService _storageService = ServiceStorageService.instance;
-  
+
   DateTime? _date;
   TimeOfDay? _time;
   String _selectedCategory = 'Ornamentação';
-  
+  String _selectedStatus = 'pendente';
+
+  final ServiceStorageService _storageService = ServiceStorageService.instance;
+
   final List<String> _categories = [
     'Ornamentação',
     'Evento Corporativo',
@@ -30,6 +34,33 @@ class _NewServicePageState extends State<NewServicePage> {
     'Formatura',
     'Outros'
   ];
+
+  final List<String> _statuses = [
+    'pendente',
+    'confirmado',
+    'em_andamento',
+    'concluido',
+    'cancelado'
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadServiceData();
+  }
+
+  void _loadServiceData() {
+    final service = widget.service;
+    _titleController.text = service.title;
+    _clientController.text = service.clientName;
+    _locationController.text = service.location;
+    _priceController.text = service.price.toString();
+    _descriptionController.text = service.description ?? '';
+    _date = service.date;
+    _time = service.time;
+    _selectedCategory = service.category;
+    _selectedStatus = service.status;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +72,7 @@ class _NewServicePageState extends State<NewServicePage> {
           children: [
             // Header com gradiente
             _buildHeader(context),
-            
+
             // Conteúdo principal
             Positioned(
               top: 160,
@@ -67,19 +98,24 @@ class _NewServicePageState extends State<NewServicePage> {
                         _buildSectionTitle("Informações Básicas"),
                         const SizedBox(height: 16),
                         _buildBasicInfoCard(),
-                        
+
+                        const SizedBox(height: 24),
+                        _buildSectionTitle("Status do Serviço"),
+                        const SizedBox(height: 16),
+                        _buildStatusCard(),
+
                         const SizedBox(height: 24),
                         _buildSectionTitle("Data e Horário"),
                         const SizedBox(height: 16),
                         _buildDateTimeCard(),
-                        
+
                         const SizedBox(height: 24),
                         _buildSectionTitle("Detalhes do Serviço"),
                         const SizedBox(height: 16),
                         _buildDetailsCard(),
-                        
+
                         const SizedBox(height: 32),
-                        _buildSaveButton(),
+                        _buildActionButtons(),
                         const SizedBox(height: 24),
                       ],
                     ),
@@ -133,22 +169,16 @@ class _NewServicePageState extends State<NewServicePage> {
                       color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.help_outline, color: Colors.white, size: 24),
+                    child: IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Colors.white, size: 24),
+                      onPressed: _showDeleteConfirmation,
+                    ),
                   ),
                 ],
               ),
-              // const SizedBox(height: 24),
-              // const Text(
-              //   "Novo Serviço",
-              //   style: TextStyle(
-              //     fontSize: 28,
-              //     fontWeight: FontWeight.bold,
-              //     color: Colors.white,
-              //   ),
-              // ),
               const SizedBox(height: 8),
               Text(
-                "Adicione um novo atendimento",
+                "Editar atendimento",
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.white.withOpacity(0.9),
@@ -195,7 +225,7 @@ class _NewServicePageState extends State<NewServicePage> {
             validator: (v) => v == null || v.isEmpty ? 'Informe o título' : null,
           ),
           const SizedBox(height: 16),
-          
+
           _buildCustomTextField(
             controller: _clientController,
             label: "Nome do Cliente",
@@ -203,10 +233,28 @@ class _NewServicePageState extends State<NewServicePage> {
             validator: (v) => v == null || v.isEmpty ? 'Informe o cliente' : null,
           ),
           const SizedBox(height: 16),
-          
+
           _buildCategoryDropdown(),
         ],
       ),
+    );
+  }
+
+  Widget _buildStatusCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 15,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: _buildStatusDropdown(),
     );
   }
 
@@ -261,7 +309,7 @@ class _NewServicePageState extends State<NewServicePage> {
             validator: (v) => v == null || v.isEmpty ? 'Informe o local' : null,
           ),
           const SizedBox(height: 16),
-          
+
           _buildCustomTextField(
             controller: _priceController,
             label: "Valor (MZN)",
@@ -270,7 +318,7 @@ class _NewServicePageState extends State<NewServicePage> {
             validator: (v) => v == null || v.isEmpty ? 'Informe o valor' : null,
           ),
           const SizedBox(height: 16),
-          
+
           _buildCustomTextField(
             controller: _descriptionController,
             label: "Descrição do Serviço",
@@ -371,12 +419,65 @@ class _NewServicePageState extends State<NewServicePage> {
     );
   }
 
+  Widget _buildStatusDropdown() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: DropdownButtonFormField<String>(
+        value: _selectedStatus,
+        decoration: InputDecoration(
+          labelText: "Status do Serviço",
+          prefixIcon: Container(
+            margin: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Service.getStatusColor(_selectedStatus).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              Service.getStatusIcon(_selectedStatus),
+              color: Service.getStatusColor(_selectedStatus),
+              size: 20,
+            ),
+          ),
+          border: InputBorder.none,
+        ),
+        items: _statuses.map((status) {
+          return DropdownMenuItem(
+            value: status,
+            child: Row(
+              children: [
+                Icon(
+                  Service.getStatusIcon(status),
+                  color: Service.getStatusColor(status),
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(status.toUpperCase()),
+              ],
+            ),
+          );
+        }).toList(),
+        onChanged: (value) {
+          if (value != null) {
+            setState(() {
+              _selectedStatus = value;
+            });
+          }
+        },
+      ),
+    );
+  }
+
   Widget _buildDateSelector() {
     return GestureDetector(
       onTap: () async {
         final picked = await showDatePicker(
           context: context,
-          initialDate: DateTime.now(),
+          initialDate: _date ?? DateTime.now(),
           firstDate: DateTime.now(),
           lastDate: DateTime.now().add(const Duration(days: 365)),
           builder: (context, child) {
@@ -449,7 +550,7 @@ class _NewServicePageState extends State<NewServicePage> {
       onTap: () async {
         final picked = await showTimePicker(
           context: context,
-          initialTime: TimeOfDay.now(),
+          initialTime: _time ?? TimeOfDay.now(),
           builder: (context, child) {
             return Theme(
               data: Theme.of(context).copyWith(
@@ -515,62 +616,65 @@ class _NewServicePageState extends State<NewServicePage> {
     );
   }
 
-  Widget _buildSaveButton() {
-    return Container(
-      width: double.infinity,
-      height: 56,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF6A4C93), Color(0xFF8E44AD)],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF6A4C93).withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        onPressed: _saveService,
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.save_outlined,
-              color: Colors.white,
-              size: 24,
+  Widget _buildActionButtons() {
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          height: 56,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF6A4C93), Color(0xFF8E44AD)],
             ),
-            SizedBox(width: 12),
-            Text(
-              'Salvar Serviço',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF6A4C93).withOpacity(0.3),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
             ),
-          ],
+            onPressed: _updateService,
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.save_outlined,
+                  color: Colors.white,
+                  size: 24,
+                ),
+                SizedBox(width: 12),
+                Text(
+                  'Salvar Alterações',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 
-  void _saveService() async {
+  void _updateService() async {
     if (_formKey.currentState!.validate() && _date != null && _time != null) {
       _formKey.currentState!.save();
 
       try {
-        final newService = Service(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+        final updatedService = widget.service.copyWith(
           title: _titleController.text.trim(),
           clientName: _clientController.text.trim(),
           category: _selectedCategory,
@@ -578,38 +682,108 @@ class _NewServicePageState extends State<NewServicePage> {
           time: _time!,
           location: _locationController.text.trim(),
           price: double.parse(_priceController.text),
-          description: _descriptionController.text.trim(),
-          status: 'agendado',
-          createdAt: DateTime.now(),
+          description: _descriptionController.text.trim().isEmpty
+              ? null
+              : _descriptionController.text.trim(),
+          status: _selectedStatus,
         );
 
-        await _storageService.addService(newService);
-        _showSuccessSnackBar();
+        await _storageService.updateService(updatedService);
+
+        _showSuccessSnackBar('Serviço atualizado com sucesso!');
 
         // Voltar para página anterior após delay
         Future.delayed(const Duration(milliseconds: 1500), () {
-          Navigator.pop(context);
+          Navigator.pop(context, true);
         });
       } catch (e) {
-        _showErrorSnackBar();
+        _showErrorSnackBar('Erro ao atualizar serviço: $e');
       }
     } else {
-      _showErrorSnackBar();
+      _showErrorSnackBar('Preencha todos os campos obrigatórios!');
     }
   }
 
-  void _showSuccessSnackBar() {
+  void _showDeleteConfirmation() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            'Confirmar Exclusão',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2C2C2C),
+            ),
+          ),
+          content: const Text(
+            'Tem certeza que deseja excluir este serviço? Esta ação não pode ser desfeita.',
+            style: TextStyle(
+              color: Color(0xFF666666),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(
+                  color: Color(0xFF6A4C93),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteService();
+              },
+              child: const Text(
+                'Excluir',
+                style: TextStyle(
+                  color: Color(0xFFFF6B6B),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteService() async {
+    try {
+      await _storageService.deleteService(widget.service.id);
+
+      _showSuccessSnackBar('Serviço excluído com sucesso!');
+
+      // Voltar para página anterior após delay
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        Navigator.pop(context, true);
+      });
+    } catch (e) {
+      _showErrorSnackBar('Erro ao excluir serviço: $e');
+    }
+  }
+
+  void _showSuccessSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              SizedBox(width: 12),
-              Text(
-                'Serviço cadastrado com sucesso!',
-                style: TextStyle(fontWeight: FontWeight.w600),
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
               ),
             ],
           ),
@@ -622,18 +796,20 @@ class _NewServicePageState extends State<NewServicePage> {
     );
   }
 
-  void _showErrorSnackBar() {
+  void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.error_outline, color: Colors.white),
-              SizedBox(width: 12),
-              Text(
-                'Preencha todos os campos obrigatórios!',
-                style: TextStyle(fontWeight: FontWeight.w600),
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
               ),
             ],
           ),

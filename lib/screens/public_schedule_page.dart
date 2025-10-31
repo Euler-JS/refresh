@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../services/service_storage_service.dart';
+import '../models/service.dart';
 
 class PublicSchedulePage extends StatefulWidget {
   const PublicSchedulePage({super.key});
@@ -10,58 +12,36 @@ class PublicSchedulePage extends StatefulWidget {
 class _PublicSchedulePageState extends State<PublicSchedulePage> {
   String selectedFilter = 'Todos';
   final List<String> filters = ['Todos', 'Disponível', 'Ocupado', 'Este Mês'];
+  List<Service> _services = [];
 
-  final List<Map<String, dynamic>> _publicEvents = [
-    {
-      'title': 'Casamento Ana & João',
-      'date': '2024-07-10',
-      'time': '18:00',
-      'location': 'Quinta da Boa Vista',
-      'available': true,
-      'category': 'Casamento',
-      'price': 15000,
-      'duration': '6 horas',
-    },
-    {
-      'title': 'Festa de 15 anos - Maria',
-      'date': '2024-07-15',
-      'time': '20:00',
-      'location': 'Salão Nobre',
-      'available': false,
-      'category': 'Aniversário',
-      'price': 8000,
-      'duration': '4 horas',
-    },
-    {
-      'title': 'Chá de Bebê - Carla',
-      'date': '2024-07-20',
-      'time': '16:00',
-      'location': 'Casa da Carla',
-      'available': true,
-      'category': 'Chá de Bebê',
-      'price': 5000,
-      'duration': '3 horas',
-    },
-    {
-      'title': 'Evento Corporativo - TechCorp',
-      'date': '2024-07-25',
-      'time': '14:00',
-      'location': 'Hotel Polana',
-      'available': true,
-      'category': 'Corporativo',
-      'price': 12000,
-      'duration': '5 horas',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadServices();
+  }
 
-  List<Map<String, dynamic>> get filteredEvents {
+  Future<void> _loadServices() async {
+    try {
+      final services = await ServiceStorageService.instance.loadServices();
+      setState(() {
+        _services = services;
+      });
+    } catch (e) {
+      print('Erro ao carregar serviços: $e');
+    }
+  }
+
+  List<Service> get filteredEvents {
     switch (selectedFilter) {
       case 'Disponível':
-        return _publicEvents.where((e) => e['available'] == true).toList();
+        return _services.where((s) => s.status == 'pendente').toList();
       case 'Ocupado':
-        return _publicEvents.where((e) => e['available'] == false).toList();
+        return _services.where((s) => s.status != 'pendente').toList();
+      case 'Este Mês':
+        final now = DateTime.now();
+        return _services.where((s) => s.date.year == now.year && s.date.month == now.month).toList();
       default:
-        return _publicEvents;
+        return _services;
     }
   }
 
@@ -178,8 +158,8 @@ class _PublicSchedulePageState extends State<PublicSchedulePage> {
   }
 
   Widget _buildStatsRow() {
-    final availableCount = _publicEvents.where((e) => e['available']).length;
-    final totalEvents = _publicEvents.length;
+    final availableCount = _services.where((s) => s.status == 'pendente').length;
+    final totalEvents = _services.length;
     
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -298,13 +278,15 @@ class _PublicSchedulePageState extends State<PublicSchedulePage> {
       itemCount: filteredEvents.length,
       separatorBuilder: (_, __) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
-        final event = filteredEvents[index];
-        return _buildEventCard(event);
+        final service = filteredEvents[index];
+        return _buildServiceCard(service);
       },
     );
   }
 
-  Widget _buildEventCard(Map<String, dynamic> event) {
+  Widget _buildServiceCard(Service service) {
+    final isAvailable = service.status == 'pendente';
+    
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -324,7 +306,7 @@ class _PublicSchedulePageState extends State<PublicSchedulePage> {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: event['available'] 
+                colors: isAvailable 
                   ? [const Color(0xFF4ECDC4), const Color(0xFF7BDBD4)]
                   : [const Color(0xFFFF6B6B), const Color(0xFFFF8E8E)],
               ),
@@ -346,7 +328,7 @@ class _PublicSchedulePageState extends State<PublicSchedulePage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          event['category'],
+                          service.category,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -356,7 +338,7 @@ class _PublicSchedulePageState extends State<PublicSchedulePage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        event['title'],
+                        service.title,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -373,7 +355,7 @@ class _PublicSchedulePageState extends State<PublicSchedulePage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    event['available'] ? Icons.check_circle : Icons.block,
+                    isAvailable ? Icons.check_circle : Icons.block,
                     color: Colors.white,
                     size: 24,
                   ),
@@ -393,7 +375,7 @@ class _PublicSchedulePageState extends State<PublicSchedulePage> {
                       child: _buildInfoItem(
                         icon: Icons.calendar_today,
                         label: "Data",
-                        value: _formatDate(event['date']),
+                        value: _formatDate(service.date),
                         color: const Color(0xFF6A4C93),
                       ),
                     ),
@@ -402,7 +384,7 @@ class _PublicSchedulePageState extends State<PublicSchedulePage> {
                       child: _buildInfoItem(
                         icon: Icons.access_time,
                         label: "Horário",
-                        value: event['time'],
+                        value: '${service.time.hour.toString().padLeft(2, '0')}:${service.time.minute.toString().padLeft(2, '0')}',
                         color: const Color(0xFF4ECDC4),
                       ),
                     ),
@@ -415,7 +397,7 @@ class _PublicSchedulePageState extends State<PublicSchedulePage> {
                       child: _buildInfoItem(
                         icon: Icons.location_on,
                         label: "Local",
-                        value: event['location'],
+                        value: service.location,
                         color: const Color(0xFFFFE66D),
                       ),
                     ),
@@ -424,7 +406,7 @@ class _PublicSchedulePageState extends State<PublicSchedulePage> {
                       child: _buildInfoItem(
                         icon: Icons.attach_money,
                         label: "Valor",
-                        value: "MZN ${event['price']}",
+                        value: "MZN ${service.price.toStringAsFixed(0)}",
                         color: const Color(0xFF6A4C93),
                       ),
                     ),
@@ -433,7 +415,7 @@ class _PublicSchedulePageState extends State<PublicSchedulePage> {
                 const SizedBox(height: 20),
                 
                 // Botão de ação
-                if (event['available'])
+                if (isAvailable)
                   Container(
                     width: double.infinity,
                     height: 48,
@@ -451,7 +433,7 @@ class _PublicSchedulePageState extends State<PublicSchedulePage> {
                           borderRadius: BorderRadius.circular(15),
                         ),
                       ),
-                      onPressed: () => _requestService(event),
+                      onPressed: () => _requestService(service),
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -543,8 +525,7 @@ class _PublicSchedulePageState extends State<PublicSchedulePage> {
     );
   }
 
-  String _formatDate(String dateStr) {
-    final date = DateTime.parse(dateStr);
+  String _formatDate(DateTime date) {
     final months = [
       'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
       'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
@@ -552,7 +533,7 @@ class _PublicSchedulePageState extends State<PublicSchedulePage> {
     return "${date.day} ${months[date.month - 1]}";
   }
 
-  void _requestService(Map<String, dynamic> event) {
+  void _requestService(Service service) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -568,13 +549,13 @@ class _PublicSchedulePageState extends State<PublicSchedulePage> {
             Text('Deseja solicitar o serviço:'),
             const SizedBox(height: 8),
             Text(
-              '"${event['title']}"',
+              '"${service.title}"',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Text('Data: ${_formatDate(event['date'])} às ${event['time']}'),
-            Text('Local: ${event['location']}'),
-            Text('Valor: MZN ${event['price']}'),
+            Text('Data: ${_formatDate(service.date)} às ${service.time.hour.toString().padLeft(2, '0')}:${service.time.minute.toString().padLeft(2, '0')}'),
+            Text('Local: ${service.location}'),
+            Text('Valor: MZN ${service.price.toStringAsFixed(0)}'),
           ],
         ),
         actions: [
@@ -591,7 +572,7 @@ class _PublicSchedulePageState extends State<PublicSchedulePage> {
             ),
             onPressed: () {
               Navigator.pop(context);
-              _showSuccessMessage(event);
+              _showSuccessMessage(service);
             },
             child: const Text(
               'Confirmar',
@@ -603,7 +584,7 @@ class _PublicSchedulePageState extends State<PublicSchedulePage> {
     );
   }
 
-  void _showSuccessMessage(Map<String, dynamic> event) {
+  void _showSuccessMessage(Service service) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Container(
@@ -614,7 +595,7 @@ class _PublicSchedulePageState extends State<PublicSchedulePage> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Solicitação enviada para "${event['title']}"!',
+                  'Solicitação enviada para "${service.title}"!',
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),

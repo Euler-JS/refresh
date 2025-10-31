@@ -7,6 +7,7 @@ import 'screens/new_service_page.dart';
 import 'screens/schedule_page.dart';
 import 'screens/payments_page.dart';
 import 'screens/clients_page.dart';
+import 'screens/services_page.dart';
 import 'screens/public_schedule_page.dart';
 import 'more_detail.dart';
 
@@ -83,6 +84,7 @@ class MyApp extends StatelessWidget {
         '/schedule': (context) => const SchedulePage(),
         '/payments': (context) => const PaymentsPage(),
         '/clients': (context) => const ClientsPage(),
+        '/services': (context) => const ServicesPage(),
         '/public-schedule': (context) => const PublicSchedulePage(),
       },
       onGenerateRoute: (settings) {

@@ -444,53 +444,54 @@ class MoreDetail extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF6A4C93),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    elevation: 0,
-                  ),
-                  onPressed: () {},
-                  child: const Text(
-                    "Recusar",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4ECDC4),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    elevation: 0,
-                  ),
-                  onPressed: () {},
-                  child: const Text(
-                    "Confirmar",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          // Row(
+          //   children: [
+          //     Expanded(
+          //       child: ElevatedButton(
+          //         style: ElevatedButton.styleFrom(
+          //           backgroundColor: Colors.white,
+          //           foregroundColor: const Color(0xFF6A4C93),
+          //           shape: RoundedRectangleBorder(
+          //             borderRadius: BorderRadius.circular(15),
+          //           ),
+          //           padding: const EdgeInsets.symmetric(vertical: 16),
+          //           elevation: 0,
+          //         ),
+          //         onPressed: () {},
+          //         child: const Text(
+          //           "Recusar",
+          //           style: TextStyle(
+          //             fontSize: 16,
+          //             fontWeight: FontWeight.bold,
+          //           ),
+          //         ),
+          //       ),
+          //     ),
+          //     const SizedBox(width: 16),
+          //     Expanded(
+          //       child: ElevatedButton(
+          //         style: ElevatedButton.styleFrom(
+          //           backgroundColor: const Color(0xFF4ECDC4),
+          //           foregroundColor: Colors.white,
+          //           shape: RoundedRectangleBorder(
+          //             borderRadius: BorderRadius.circular(15),
+          //           ),
+          //           padding: const EdgeInsets.symmetric(vertical: 16),
+          //           elevation: 0,
+          //         ),
+          //         onPressed: () {},
+          //         child: const Text(
+          //           "Confirmar",
+          //           style: TextStyle(
+          //             fontSize: 16,
+          //             fontWeight: FontWeight.bold,
+          //           ),
+          //         ),
+          //       ),
+          //     ),
+          //   ],
+          // ),
+        
         ],
       ),
     );

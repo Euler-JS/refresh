@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../Model/model.dart';
+import '../services/payment_storage_service.dart';
 
 class PaymentsPage extends StatefulWidget {
   const PaymentsPage({super.key});
@@ -11,8 +12,30 @@ class PaymentsPage extends StatefulWidget {
 class _PaymentsPageState extends State<PaymentsPage> {
   String selectedFilter = 'Todos';
   final List<String> filters = ['Todos', 'Pendentes', 'Pagos', 'Atrasados'];
+  final PaymentStorageService _storageService = PaymentStorageService.instance;
 
-  final List<PaymentModel> _payments = paymentItems;
+  List<PaymentModel> _payments = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPayments();
+  }
+
+  Future<void> _loadPayments() async {
+    setState(() => _isLoading = true);
+    try {
+      final payments = await _storageService.loadPayments();
+      setState(() {
+        _payments = payments;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      _showErrorMessage('Erro ao carregar pagamentos');
+    }
+  }
 
   List<PaymentModel> get filteredPayments {
     switch (selectedFilter) {
@@ -76,6 +99,11 @@ class _PaymentsPageState extends State<PaymentsPage> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showAddPaymentDialog,
+        backgroundColor: const Color(0xFF6A4C93),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -319,6 +347,14 @@ class _PaymentsPageState extends State<PaymentsPage> {
   }
 
   Widget _buildPaymentsList() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6A4C93)),
+        ),
+      );
+    }
+
     if (filteredPayments.isEmpty) {
       return _buildEmptyState();
     }
@@ -569,66 +605,165 @@ class _PaymentsPageState extends State<PaymentsPage> {
                 // Botão de ação para pagamentos pendentes/atrasados
                 if (payment.status == 'pendente' || payment.status == 'atrasado') ...[
                   const SizedBox(height: 20),
-                  Container(
-                    width: double.infinity,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF4ECDC4), Color(0xFF7BDBD4)],
-                      ),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                      onPressed: () => _showPaymentDialog(payment, index),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.payment, color: Colors.white, size: 20),
-                          SizedBox(width: 8),
-                          Text(
-                            'Registrar Pagamento',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          height: 48,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF4ECDC4), Color(0xFF7BDBD4)],
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                            ),
+                            onPressed: () => _showPaymentDialog(payment, index),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.payment, color: Colors.white, size: 20),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Registrar Pagamento',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 12),
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: PopupMenuButton<String>(
+                          onSelected: (value) {
+                            switch (value) {
+                              case 'edit':
+                                _showEditPaymentDialog(payment);
+                                break;
+                              case 'delete':
+                                _showDeleteConfirmation(payment);
+                                break;
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Editar'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete, color: Colors.red, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Excluir', style: TextStyle(color: Colors.red)),
+                                ],
+                              ),
+                            ),
+                          ],
+                          child: const Icon(Icons.more_vert, color: Colors.grey),
+                        ),
+                      ),
+                    ],
                   ),
                 ] else ...[
                   const SizedBox(height: 20),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF4ECDC4).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(15),
-                      border: Border.all(color: const Color(0xFF4ECDC4).withOpacity(0.3)),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.check_circle, color: Color(0xFF4ECDC4), size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          'Pagamento Confirmado',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF4ECDC4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          height: 48,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4ECDC4).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(color: const Color(0xFF4ECDC4).withOpacity(0.3)),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.check_circle, color: Color(0xFF4ECDC4), size: 20),
+                              SizedBox(width: 8),
+                              Text(
+                                'Pagamento Confirmado',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF4ECDC4),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 12),
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: PopupMenuButton<String>(
+                          onSelected: (value) {
+                            switch (value) {
+                              case 'edit':
+                                _showEditPaymentDialog(payment);
+                                break;
+                              case 'delete':
+                                _showDeleteConfirmation(payment);
+                                break;
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Editar'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete, color: Colors.red, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Excluir', style: TextStyle(color: Colors.red)),
+                                ],
+                              ),
+                            ),
+                          ],
+                          child: const Icon(Icons.more_vert, color: Colors.grey),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ],
@@ -820,12 +955,370 @@ class _PaymentsPageState extends State<PaymentsPage> {
     );
   }
 
-  void _registerPayment(PaymentModel payment, int index, double amount, DateTime date) {
-    setState(() {
+  void _registerPayment(PaymentModel payment, int index, double amount, DateTime date) async {
+    try {
       final paymentIndex = _payments.indexWhere((p) => p == filteredPayments[index]);
-      _payments[paymentIndex].addPayment(amount, date);
-    });
-    _showSuccessMessage('Pagamento registrado com sucesso!');
+      final updatedPayment = _payments[paymentIndex].copyWith();
+      updatedPayment.addPayment(amount, date);
+
+      await _storageService.updatePayment(payment.id, updatedPayment);
+
+      setState(() {
+        _payments[paymentIndex] = updatedPayment;
+      });
+      _showSuccessMessage('Pagamento registrado com sucesso!');
+    } catch (e) {
+      _showErrorMessage('Erro ao registrar pagamento');
+    }
+  }
+
+  void _showAddPaymentDialog() {
+    final clientController = TextEditingController();
+    final serviceController = TextEditingController();
+    final totalAmountController = TextEditingController();
+    final categoryController = TextEditingController();
+    DateTime dueDate = DateTime.now().add(const Duration(days: 30));
+    DateTime serviceDate = DateTime.now();
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text(
+            'Novo Recebimento',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: clientController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nome do Cliente',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: serviceController,
+                  decoration: const InputDecoration(
+                    labelText: 'Serviço Prestado',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: categoryController,
+                  decoration: const InputDecoration(
+                    labelText: 'Categoria',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: totalAmountController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Valor Total (MZN)',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const Text('Data do Serviço: '),
+                    TextButton(
+                      onPressed: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: serviceDate,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime(2030),
+                        );
+                        if (picked != null) {
+                          setState(() => serviceDate = picked);
+                        }
+                      },
+                      child: Text(
+                        _formatDate(serviceDate),
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const Text('Vencimento: '),
+                    TextButton(
+                      onPressed: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: dueDate,
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime(2030),
+                        );
+                        if (picked != null) {
+                          setState(() => dueDate = picked);
+                        }
+                      },
+                      child: Text(
+                        _formatDate(dueDate),
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final client = clientController.text.trim();
+                final service = serviceController.text.trim();
+                final category = categoryController.text.trim();
+                final totalAmount = double.tryParse(totalAmountController.text) ?? 0.0;
+
+                if (client.isEmpty || service.isEmpty || category.isEmpty || totalAmount <= 0) {
+                  _showErrorMessage('Preencha todos os campos corretamente');
+                  return;
+                }
+
+                try {
+                  final newPayment = PaymentModel(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    client: client,
+                    service: service,
+                    totalAmount: totalAmount,
+                    status: 'pendente',
+                    dueDate: dueDate,
+                    serviceDate: serviceDate,
+                    category: category,
+                  );
+
+                  await _storageService.addPayment(newPayment);
+
+                  setState(() {
+                    _payments.add(newPayment);
+                  });
+
+                  Navigator.pop(context);
+                  _showSuccessMessage('Recebimento adicionado com sucesso!');
+                } catch (e) {
+                  _showErrorMessage('Erro ao adicionar recebimento');
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4ECDC4),
+              ),
+              child: const Text('Adicionar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditPaymentDialog(PaymentModel payment) {
+    final clientController = TextEditingController(text: payment.client);
+    final serviceController = TextEditingController(text: payment.service);
+    final totalAmountController = TextEditingController(text: payment.totalAmount.toString());
+    final categoryController = TextEditingController(text: payment.category);
+    DateTime dueDate = payment.dueDate;
+    DateTime serviceDate = payment.serviceDate;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text(
+            'Editar Recebimento',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: clientController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nome do Cliente',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: serviceController,
+                  decoration: const InputDecoration(
+                    labelText: 'Serviço Prestado',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: categoryController,
+                  decoration: const InputDecoration(
+                    labelText: 'Categoria',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: totalAmountController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Valor Total (MZN)',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const Text('Data do Serviço: '),
+                    TextButton(
+                      onPressed: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: serviceDate,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime(2030),
+                        );
+                        if (picked != null) {
+                          setState(() => serviceDate = picked);
+                        }
+                      },
+                      child: Text(
+                        _formatDate(serviceDate),
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const Text('Vencimento: '),
+                    TextButton(
+                      onPressed: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: dueDate,
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime(2030),
+                        );
+                        if (picked != null) {
+                          setState(() => dueDate = picked);
+                        }
+                      },
+                      child: Text(
+                        _formatDate(dueDate),
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final client = clientController.text.trim();
+                final service = serviceController.text.trim();
+                final category = categoryController.text.trim();
+                final totalAmount = double.tryParse(totalAmountController.text) ?? 0.0;
+
+                if (client.isEmpty || service.isEmpty || category.isEmpty || totalAmount <= 0) {
+                  _showErrorMessage('Preencha todos os campos corretamente');
+                  return;
+                }
+
+                try {
+                  final updatedPayment = payment.copyWith(
+                    client: client,
+                    service: service,
+                    totalAmount: totalAmount,
+                    category: category,
+                    dueDate: dueDate,
+                    serviceDate: serviceDate,
+                  );
+
+                  await _storageService.updatePayment(payment.id, updatedPayment);
+
+                  setState(() {
+                    final index = _payments.indexWhere((p) => p.id == payment.id);
+                    if (index != -1) {
+                      _payments[index] = updatedPayment;
+                    }
+                  });
+
+                  Navigator.pop(context);
+                  _showSuccessMessage('Recebimento atualizado com sucesso!');
+                } catch (e) {
+                  _showErrorMessage('Erro ao atualizar recebimento');
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4ECDC4),
+              ),
+              child: const Text('Atualizar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(PaymentModel payment) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Confirmar Exclusão',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Tem certeza que deseja excluir o recebimento de ${payment.client} para "${payment.service}"?\n\nEsta ação não pode ser desfeita.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                await _storageService.deletePayment(payment.id);
+
+                setState(() {
+                  _payments.removeWhere((p) => p.id == payment.id);
+                });
+
+                Navigator.pop(context);
+                _showSuccessMessage('Recebimento excluído com sucesso!');
+              } catch (e) {
+                Navigator.pop(context);
+                _showErrorMessage('Erro ao excluir recebimento');
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF6B6B),
+            ),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showSuccessMessage(String message) {
@@ -845,6 +1338,30 @@ class _PaymentsPageState extends State<PaymentsPage> {
           ),
         ),
         backgroundColor: const Color(0xFF4ECDC4),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  void _showErrorMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: [
+              const Icon(Icons.error, color: Colors.white),
+              const SizedBox(width: 12),
+              Text(
+                message,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ),
+        backgroundColor: const Color(0xFFFF6B6B),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),

@@ -81,6 +81,46 @@ class PaymentModel {
       installments: installments ?? List.from(this.installments),
     );
   }
+
+  // Método para serialização JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'client': client,
+      'service': service,
+      'totalAmount': totalAmount,
+      'paidAmount': paidAmount,
+      'status': status,
+      'dueDate': dueDate.toIso8601String(),
+      'serviceDate': serviceDate.toIso8601String(),
+      'category': category,
+      'installments': installments.map((i) => {
+        'amount': i.amount,
+        'date': i.date.toIso8601String(),
+      }).toList(),
+    };
+  }
+
+  // Método para desserialização JSON
+  factory PaymentModel.fromJson(Map<String, dynamic> json) {
+    return PaymentModel(
+      id: json['id'],
+      client: json['client'],
+      service: json['service'],
+      totalAmount: json['totalAmount'],
+      paidAmount: json['paidAmount'] ?? 0.0,
+      status: json['status'],
+      dueDate: DateTime.parse(json['dueDate']),
+      serviceDate: DateTime.parse(json['serviceDate']),
+      category: json['category'],
+      installments: (json['installments'] as List<dynamic>?)
+          ?.map((i) => PaymentInstallment(
+                amount: i['amount'],
+                date: DateTime.parse(i['date']),
+              ))
+          .toList() ?? [],
+    );
+  }
 }
 
 class PaymentInstallment {
@@ -93,112 +133,9 @@ class PaymentInstallment {
   });
 }
 
-// Dados mock atualizados
+// Dados de exemplo (removidos)
 List<PaymentModel> paymentItems = [
-  PaymentModel(
-    id: '1',
-    client: 'Ana Silva',
-    service: 'Ornamentação Casamento',
-    totalAmount: 15000.0,
-    paidAmount: 5000.0, // Exemplo com pagamento parcial
-    status: 'pendente',
-    dueDate: DateTime.now().add(const Duration(days: 5)),
-    serviceDate: DateTime.now().subtract(const Duration(days: 2)),
-    category: 'Casamento',
-    installments: [
-      PaymentInstallment(amount: 5000.0, date: DateTime.now().subtract(const Duration(days: 1))),
-    ],
-  ),
-  PaymentModel(
-    id: '2',
-    client: 'Carlos Mendes',
-    service: 'Decoração Baixa',
-    totalAmount: 8000.0,
-    status: 'atrasado',
-    dueDate: DateTime.now().subtract(const Duration(days: 3)),
-    serviceDate: DateTime.now().subtract(const Duration(days: 10)),
-    category: 'Evento Corporativo',
-  ),
-  PaymentModel(
-    id: '3',
-    client: 'João Paulo',
-    service: 'Buffet Festa',
-    totalAmount: 12000.0,
-    paidAmount: 12000.0,
-    status: 'pago',
-    dueDate: DateTime.now().subtract(const Duration(days: 1)),
-    serviceDate: DateTime.now().subtract(const Duration(days: 8)),
-    category: 'Aniversário',
-    installments: [
-      PaymentInstallment(amount: 12000.0, date: DateTime.now().subtract(const Duration(days: 1))),
-    ],
-  ),
-  PaymentModel(
-    id: '4',
-    client: 'Maria Santos',
-    service: 'Chá de Bebê',
-    totalAmount: 5000.0,
-    status: 'pendente',
-    dueDate: DateTime.now().add(const Duration(days: 7)),
-    serviceDate: DateTime.now().subtract(const Duration(days: 1)),
-    category: 'Chá de Bebê',
-  ),
 ];
 
 List<LocationDetail> locationItems = [
-  LocationDetail(
-    image: "Images/thebridge.png",
-    name: 'The Way',
-    address: 'Spain',
-    price: 1350,
-    rating: 5.0,
-    temperature: 19,
-    time:5 ,
-    description:
-        '"The Way" typically refers to the Camino de Santiago, a network of pilgrimage routes leading to the shrine of the apostle Saint James the Great in the Cathedral of Santiago de Compostela in Galicia, northwest Spain.',
-  ),
-  LocationDetail(
-    image: "Images/thebridge.png",
-    name: 'Loygavegur',
-    address: 'Iceland',
-    price: 2350,
-      rating: 4.9,
-    temperature: 1,
-    time:15 ,
-    description:
-        "Iceland's nature is renowned for its raw and untamed beauty, characterized by dramatic landscapes shaped by volcanic activity, glaciers, geysers, and cascading waterfalls,if you want to enjoy more then you need to visit this all place.",
-  ),
-  LocationDetail(
-    image: "Images/thebridge.png",
-    name: 'Oyo Lakes',
-    address: 'Croatia',
-    price: 3250,
-      rating: 5.0,
-    temperature: 22,
-    time:9 ,
-    description:
-        'Oyo Lake, nestled in a picturesque setting, captivates visitors with its tranquil waters and surrounding lush landscapes. It serves as a haven for relaxation and outdoor activities, offering opportunities for boating,and peaceful walks along its shores',
-  ),
-  LocationDetail(
-    image: "Images/sunrises.png",
-    name: 'Sun Rise',
-    address: 'UK',
-    price: 3500,
-      rating: 4.0,
-    temperature: 12,
-    time:6 ,
-    description:
-        "At dawn, the Eiffel Tower in Paris becomes a spectacle of beauty as the sun rises behind its iconic silhouette, casting a warm glow over the cityscape.If you want to enjoy more then you need to visit this all place.",
-  ),
-  LocationDetail(
-    image: "Images/eiffel_tower.png",
-    name: 'Effiel Tower',
-    address: 'Paris France',
-    price: 3350,
-      rating: 4.5,
-    temperature: 19,
-    time:2 ,
-    description:
-        ' This enchanting moment draws crowds to witness the breathtaking scene and symbolizes the timeless allure and romantic charm of the French capital, making it an unforgettable experience for visitors from around the world.',
-  ),
 ];

@@ -37,11 +37,11 @@ class QuickActions extends StatelessWidget {
               children: [
                 _buildActionCard(
                   context: context,
-                  icon: Icons.add_business,
-                  title: "Novo Serviço",
+                  icon: Icons.event_note,
+                  title: "Serviços",
                   color: const Color(0xFF6A4C93),
                   onTap: () {
-                    Navigator.pushNamed(context, '/new-service');
+                    Navigator.pushNamed(context, '/services');
                   },
                 ),
                 _buildActionCard(

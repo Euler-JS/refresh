@@ -187,6 +187,7 @@ class ServiceCard extends StatelessWidget {
                     SizedBox(height: cardHeight * 0.025),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Flexible(
                           child: Text(

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../services/service_storage_service.dart';
+import '../models/service.dart';
 
 class SchedulePage extends StatefulWidget {
   const SchedulePage({super.key});
@@ -10,64 +12,35 @@ class SchedulePage extends StatefulWidget {
 class _SchedulePageState extends State<SchedulePage> {
   String selectedFilter = 'Todos';
   final List<String> filters = ['Todos', 'Pendentes', 'Confirmados', 'Rejeitados'];
+  List<Service> _services = [];
 
-  final List<Map<String, dynamic>> _events = [
-    {
-      'title': 'Ornamentação Casamento',
-      'client': 'Ana Silva',
-      'date': DateTime.now().add(const Duration(days: 1)),
-      'time': '18:00',
-      'location': 'Quinta da Boa Vista',
-      'price': 15000,
-      'status': 'confirmado',
-      'category': 'Casamento',
-      'duration': '6 horas',
-    },
-    {
-      'title': 'Decoração Baixa',
-      'client': 'Carlos Mendes',
-      'date': DateTime.now().add(const Duration(days: 2)),
-      'time': '14:00',
-      'location': 'Centro da Cidade',
-      'price': 8000,
-      'status': 'pendente',
-      'category': 'Evento Corporativo',
-      'duration': '4 horas',
-    },
-    {
-      'title': 'Buffet Festa',
-      'client': 'João Paulo',
-      'date': DateTime.now().add(const Duration(days: 3)),
-      'time': '20:00',
-      'location': 'Salão de Festas',
-      'price': 12000,
-      'status': 'pendente',
-      'category': 'Aniversário',
-      'duration': '5 horas',
-    },
-    {
-      'title': 'Chá de Bebê',
-      'client': 'Maria Santos',
-      'date': DateTime.now().add(const Duration(days: 5)),
-      'time': '16:00',
-      'location': 'Casa da Maria',
-      'price': 5000,
-      'status': 'rejeitado',
-      'category': 'Chá de Bebê',
-      'duration': '3 horas',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadServices();
+  }
 
-  List<Map<String, dynamic>> get filteredEvents {
+  Future<void> _loadServices() async {
+    try {
+      final services = await ServiceStorageService.instance.loadServices();
+      setState(() {
+        _services = services;
+      });
+    } catch (e) {
+      print('Erro ao carregar serviços: $e');
+    }
+  }
+
+  List<Service> get filteredEvents {
     switch (selectedFilter) {
       case 'Pendentes':
-        return _events.where((e) => e['status'] == 'pendente').toList();
+        return _services.where((s) => s.status == 'pendente').toList();
       case 'Confirmados':
-        return _events.where((e) => e['status'] == 'confirmado').toList();
+        return _services.where((s) => s.status == 'confirmado').toList();
       case 'Rejeitados':
-        return _events.where((e) => e['status'] == 'rejeitado').toList();
+        return _services.where((s) => s.status == 'cancelado').toList();
       default:
-        return _events;
+        return _services;
     }
   }
 
@@ -184,9 +157,9 @@ class _SchedulePageState extends State<SchedulePage> {
   }
 
   Widget _buildStatsRow() {
-    final pendingCount = _events.where((e) => e['status'] == 'pendente').length;
-    final confirmedCount = _events.where((e) => e['status'] == 'confirmado').length;
-    final totalEvents = _events.length;
+    final pendingCount = _services.where((s) => s.status == 'pendente').length;
+    final confirmedCount = _services.where((s) => s.status == 'confirmado').length;
+    final totalEvents = _services.length;
     
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -338,8 +311,8 @@ class _SchedulePageState extends State<SchedulePage> {
       itemCount: filteredEvents.length,
       separatorBuilder: (_, __) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
-        final event = filteredEvents[index];
-        return _buildEventCard(event, index);
+        final service = filteredEvents[index];
+        return _buildServiceCard(service, index);
       },
     );
   }
@@ -383,7 +356,7 @@ class _SchedulePageState extends State<SchedulePage> {
     );
   }
 
-  Widget _buildEventCard(Map<String, dynamic> event, int index) {
+  Widget _buildServiceCard(Service service, int index) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -402,7 +375,7 @@ class _SchedulePageState extends State<SchedulePage> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: _getStatusGradient(event['status']),
+              gradient: _getStatusGradient(service.status),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(20),
                 topRight: Radius.circular(20),
@@ -414,7 +387,7 @@ class _SchedulePageState extends State<SchedulePage> {
                   radius: 24,
                   backgroundColor: Colors.white.withOpacity(0.2),
                   child: Text(
-                    event['client'][0],
+                    service.clientName[0],
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -434,7 +407,7 @@ class _SchedulePageState extends State<SchedulePage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          event['category'],
+                          service.category,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -444,7 +417,7 @@ class _SchedulePageState extends State<SchedulePage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        event['title'],
+                        service.title,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -453,7 +426,7 @@ class _SchedulePageState extends State<SchedulePage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        event['client'],
+                        service.clientName,
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.white,
@@ -470,7 +443,7 @@ class _SchedulePageState extends State<SchedulePage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    _statusIcon(event['status']),
+                    _statusIcon(service.status),
                     color: Colors.white,
                     size: 24,
                   ),
@@ -490,7 +463,7 @@ class _SchedulePageState extends State<SchedulePage> {
                       child: _buildInfoItem(
                         icon: Icons.calendar_today,
                         label: "Data",
-                        value: _formatDate(event['date']),
+                        value: _formatDate(service.date),
                         color: const Color(0xFF6A4C93),
                       ),
                     ),
@@ -499,7 +472,7 @@ class _SchedulePageState extends State<SchedulePage> {
                       child: _buildInfoItem(
                         icon: Icons.access_time,
                         label: "Horário",
-                        value: event['time'],
+                        value: '${service.time.hour.toString().padLeft(2, '0')}:${service.time.minute.toString().padLeft(2, '0')}',
                         color: const Color(0xFF4ECDC4),
                       ),
                     ),
@@ -512,7 +485,7 @@ class _SchedulePageState extends State<SchedulePage> {
                       child: _buildInfoItem(
                         icon: Icons.location_on,
                         label: "Local",
-                        value: event['location'],
+                        value: service.location,
                         color: const Color(0xFFFFE66D),
                       ),
                     ),
@@ -521,7 +494,7 @@ class _SchedulePageState extends State<SchedulePage> {
                       child: _buildInfoItem(
                         icon: Icons.attach_money,
                         label: "Valor",
-                        value: "MZN ${event['price']}",
+                        value: "MZN ${service.price.toStringAsFixed(0)}",
                         color: const Color(0xFF6A4C93),
                       ),
                     ),
@@ -529,7 +502,7 @@ class _SchedulePageState extends State<SchedulePage> {
                 ),
                 
                 // Botões de ação para eventos pendentes
-                if (event['status'] == 'pendente') ...[
+                if (service.status == 'pendente') ...[
                   const SizedBox(height: 20),
                   Row(
                     children: [
@@ -646,7 +619,7 @@ class _SchedulePageState extends State<SchedulePage> {
         return const LinearGradient(
           colors: [Color(0xFFFFE66D), Color(0xFFFFED88)],
         );
-      case 'rejeitado':
+      case 'cancelado':
         return const LinearGradient(
           colors: [Color(0xFFFF6B6B), Color(0xFFFF8E8E)],
         );
@@ -663,7 +636,7 @@ class _SchedulePageState extends State<SchedulePage> {
         return Icons.check_circle;
       case 'pendente':
         return Icons.hourglass_top;
-      case 'rejeitado':
+      case 'cancelado':
         return Icons.cancel;
       default:
         return Icons.info;
@@ -684,20 +657,30 @@ class _SchedulePageState extends State<SchedulePage> {
     }
   }
 
-  void _approve(int index) {
-    setState(() {
-      final eventIndex = _events.indexWhere((e) => e == filteredEvents[index]);
-      _events[eventIndex]['status'] = 'confirmado';
-    });
-    _showSuccessMessage('Evento aprovado com sucesso!');
+  void _approve(int index) async {
+    try {
+      final service = filteredEvents[index];
+      final updatedService = service.copyWith(status: 'confirmado');
+      await ServiceStorageService.instance.updateService(updatedService);
+      await _loadServices(); // Recarregar os serviços
+      _showSuccessMessage('Evento aprovado com sucesso!');
+    } catch (e) {
+      print('Erro ao aprovar serviço: $e');
+      _showErrorMessage('Erro ao aprovar evento');
+    }
   }
 
-  void _reject(int index) {
-    setState(() {
-      final eventIndex = _events.indexWhere((e) => e == filteredEvents[index]);
-      _events[eventIndex]['status'] = 'rejeitado';
-    });
-    _showSuccessMessage('Evento rejeitado!');
+  void _reject(int index) async {
+    try {
+      final service = filteredEvents[index];
+      final updatedService = service.copyWith(status: 'cancelado');
+      await ServiceStorageService.instance.updateService(updatedService);
+      await _loadServices(); // Recarregar os serviços
+      _showSuccessMessage('Evento rejeitado!');
+    } catch (e) {
+      print('Erro ao rejeitar serviço: $e');
+      _showErrorMessage('Erro ao rejeitar evento');
+    }
   }
 
   void _showSuccessMessage(String message) {
@@ -717,6 +700,30 @@ class _SchedulePageState extends State<SchedulePage> {
           ),
         ),
         backgroundColor: const Color(0xFF4ECDC4),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  void _showErrorMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: [
+              const Icon(Icons.error, color: Colors.white),
+              const SizedBox(width: 12),
+              Text(
+                message,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ),
+        backgroundColor: const Color(0xFFFF6B6B),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),
