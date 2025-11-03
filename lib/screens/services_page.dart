@@ -658,32 +658,32 @@ class _ServicesPageState extends State<ServicesPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF6A4C93),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          elevation: 0,
-                        ),
-                        onPressed: () {},
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.check_circle, size: 20),
-                            SizedBox(width: 8),
-                            Text(
-                              'Concluir',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    // const SizedBox(width: 12),
+                    // Expanded(
+                    //   child: ElevatedButton(
+                    //     style: ElevatedButton.styleFrom(
+                    //       backgroundColor: const Color(0xFF6A4C93),
+                    //       foregroundColor: Colors.white,
+                    //       shape: RoundedRectangleBorder(
+                    //         borderRadius: BorderRadius.circular(15),
+                    //       ),
+                    //       padding: const EdgeInsets.symmetric(vertical: 12),
+                    //       elevation: 0,
+                    //     ),
+                    //     onPressed: () {},
+                    //     child: const Row(
+                    //       mainAxisAlignment: MainAxisAlignment.center,
+                    //       children: [
+                    //         Icon(Icons.check_circle, size: 20),
+                    //         SizedBox(width: 8),
+                    //         Text(
+                    //           'Concluir',
+                    //           style: TextStyle(fontWeight: FontWeight.bold),
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ),
                   ],
                 ),
               ],
