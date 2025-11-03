@@ -440,7 +440,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                   radius: 24,
                   backgroundColor: Colors.white.withOpacity(0.2),
                   child: Text(
-                    payment.client[0],
+                    payment.client.isNotEmpty ? payment.client[0] : '?',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

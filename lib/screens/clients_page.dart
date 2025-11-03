@@ -452,7 +452,7 @@ class _ClientsPageState extends State<ClientsPage> {
                   radius: 28,
                   backgroundColor: Colors.white.withOpacity(0.2),
                   child: Text(
-                    client.name[0],
+                    client.name.isNotEmpty ? client.name[0] : '?',
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,

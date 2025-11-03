@@ -387,7 +387,7 @@ class _SchedulePageState extends State<SchedulePage> {
                   radius: 24,
                   backgroundColor: Colors.white.withOpacity(0.2),
                   child: Text(
-                    service.clientName[0],
+                    service.clientName.isNotEmpty ? service.clientName[0] : '?',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

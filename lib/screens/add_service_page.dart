@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/service.dart';
+import '../models/client.dart';
 import '../services/service_storage_service.dart';
+import '../services/client_storage_service.dart';
 
 class AddServicePage extends StatefulWidget {
   const AddServicePage({super.key});
@@ -22,6 +24,10 @@ class _AddServicePageState extends State<AddServicePage> {
   String _selectedCategory = 'Ornamentação';
 
   final ServiceStorageService _storageService = ServiceStorageService.instance;
+  final ClientStorageService _clientStorageService = ClientStorageService();
+
+  List<Client> _availableClients = [];
+  Client? _selectedClient;
 
   final List<String> _categories = [
     'Ornamentação',
@@ -31,6 +37,19 @@ class _AddServicePageState extends State<AddServicePage> {
     'Formatura',
     'Outros'
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadClients();
+  }
+
+  Future<void> _loadClients() async {
+    final clients = await _clientStorageService.loadClients();
+    setState(() {
+      _availableClients = clients;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -188,12 +207,7 @@ class _AddServicePageState extends State<AddServicePage> {
           ),
           const SizedBox(height: 16),
 
-          _buildCustomTextField(
-            controller: _clientController,
-            label: "Nome do Cliente",
-            icon: Icons.person_outline,
-            validator: (v) => v == null || v.isEmpty ? 'Informe o cliente' : null,
-          ),
+          _buildClientAutocomplete(),
           const SizedBox(height: 16),
 
           _buildCategoryDropdown(),
@@ -317,6 +331,63 @@ class _AddServicePageState extends State<AddServicePage> {
         filled: true,
         fillColor: Colors.grey[50],
       ),
+    );
+  }
+
+  Widget _buildClientAutocomplete() {
+    return Autocomplete<Client>(
+      optionsBuilder: (TextEditingValue textEditingValue) {
+        if (textEditingValue.text.isEmpty) {
+          return _availableClients;
+        }
+        return _availableClients.where((client) =>
+          client.name.toLowerCase().contains(textEditingValue.text.toLowerCase()));
+      },
+      displayStringForOption: (Client client) => client.name,
+      fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+        return TextFormField(
+          controller: textEditingController,
+          focusNode: focusNode,
+          decoration: InputDecoration(
+            labelText: "Nome do Cliente",
+            hintText: "Digite ou selecione um cliente",
+            prefixIcon: Container(
+              margin: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF6A4C93).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.person_outline,
+                color: Color(0xFF6A4C93),
+                size: 20,
+              ),
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF6A4C93), width: 2),
+            ),
+            filled: true,
+            fillColor: Colors.grey[50],
+          ),
+          validator: (v) => v == null || v.isEmpty ? 'Informe o cliente' : null,
+        );
+      },
+      onSelected: (Client client) {
+        setState(() {
+          _selectedClient = client;
+          _clientController.text = client.name;
+        });
+      },
     );
   }
 
