@@ -77,7 +77,7 @@ class QuickActions extends StatelessWidget {
           SizedBox(height: screenHeight * 0.018),
           GestureDetector(
             onTap: () {
-              Navigator.pushNamed(context, '/public-schedule');
+              Navigator.pushNamed(context, '/subscription');
             },
             child: Container(
               width: double.infinity,
@@ -110,7 +110,7 @@ class QuickActions extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
-                      Icons.visibility,
+                      Icons.verified,
                       color: Colors.white,
                       size: screenWidth * 0.055,
                     ),
@@ -122,7 +122,7 @@ class QuickActions extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          "Link da Agenda Pública",
+                          "Minha Subscrição",
                           style: ResponsiveText.style(
                             context: context,
                             fontSize: 14,
@@ -134,7 +134,7 @@ class QuickActions extends StatelessWidget {
                         ),
                         SizedBox(height: screenHeight * 0.003),
                         Text(
-                          "Compartilhe com seus clientes",
+                          "Ver plano ativo ou fazer subscrição",
                           style: ResponsiveText.style(
                             context: context,
                             fontSize: 12,
@@ -154,7 +154,7 @@ class QuickActions extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
-                      Icons.share,
+                      Icons.arrow_forward,
                       color: Colors.white,
                       size: screenWidth * 0.045,
                     ),

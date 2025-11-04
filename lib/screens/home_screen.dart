@@ -9,6 +9,8 @@ import 'package:travel_app_ui/services/service_storage_service.dart';
 import 'package:travel_app_ui/utils/responsive_text.dart';
 import 'package:travel_app_ui/widgets/quick_actions.dart';
 import 'package:travel_app_ui/widgets/service_card.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -196,113 +198,117 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final bottomSectionHeight = screenHeight * 0.35; // 35% of screen height
     final serviceCardsTop = topSectionHeight * 0.50; // Position cards higher on the screen
     
-    return Scaffold(
-      body: SizedBox(
-        height: screenHeight,
-        width: screenWidth,
-        child: Stack(
-          children: [
-            // Top background with gradient
-            Container(
-              height: topSectionHeight,
-              width: screenWidth,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF6A4C93),
-                    Color(0xFF8E44AD),
-                    Color(0xFFA569BD),
-                  ]
-                ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(36), // More subtle curve
-                  bottomRight: Radius.circular(36)
-                )
-              ),
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 10),
-                      
-                      // Header
-                      _buildHeader(),
-                      SizedBox(height: screenHeight * 0.015), // 1.5% of screen height - reduced
-                      
-                      // Greeting and Status
-                      // _buildGreetingSection(),
-                      SizedBox(height: screenHeight * 0.02), // 2% of screen height - reduced
-                      
-                      // Stats section
-                      _buildStatsSection(),
-                      SizedBox(height: screenHeight * 0.02), // Space between stats and filters
-                      
-                      // Category filters
-                      _buildFilterChips(),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            
-            // Service cards section (responsive positioning)
-            Positioned(
-              top: serviceCardsTop,
-              left: 0,
-              right: 0,
-              bottom: bottomSectionHeight, // Anchor to the bottom section to avoid overlap
-              child: _isLoading 
-                ? _buildLoadingState()
-                : filteredServices.isEmpty 
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                      itemCount: filteredServices.length,
-                      scrollDirection: Axis.horizontal,
-                      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03), // Responsive padding
-                      clipBehavior: Clip.none, // Allow cards to overflow if needed
-                      physics: const BouncingScrollPhysics(),
-                      itemBuilder: (context, index) {
-                        ServiceItem service = filteredServices[index];
-                        return ServiceCard(service: service);
-                      },
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        return Scaffold(
+          body: SizedBox(
+            height: screenHeight,
+            width: screenWidth,
+            child: Stack(
+              children: [
+                // Top background with gradient
+                Container(
+                  height: topSectionHeight,
+                  width: screenWidth,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFF6A4C93),
+                        Color(0xFF8E44AD),
+                        Color(0xFFA569BD),
+                      ]
                     ),
-            ),
-            
-            // Bottom section (quick actions) - adjusted 20% lower
-            Positioned(
-              bottom: -(screenHeight * 0.06), // Push down by 20% of the original height (35% * 0.2 = 7%)
-              left: 0,
-              right: 0,
-              height: (bottomSectionHeight * 1.2) + (safeAreaBottom > 0 ? safeAreaBottom : 0), // Increase height by 20%
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(36), // Match top section curve
-                    topRight: Radius.circular(36),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      offset: const Offset(0, -2),
-                      blurRadius: 6,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(36), // More subtle curve
+                      bottomRight: Radius.circular(36)
                     )
-                  ],
+                  ),
+                  child: SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 10),
+                          
+                          // Header with greeting and logout
+                          _buildHeader(authProvider),
+                          SizedBox(height: screenHeight * 0.015), // 1.5% of screen height - reduced
+                          
+                          // Greeting and Status
+                          // _buildGreetingSection(authProvider),
+                          // SizedBox(height: screenHeight * 0.02), // 2% of screen height - reduced
+                          
+                          // Stats section
+                          _buildStatsSection(),
+                          SizedBox(height: screenHeight * 0.02), // Space between stats and filters
+                          
+                          // Category filters
+                          _buildFilterChips(),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-                child: Padding(
-                  padding: EdgeInsets.only(top: screenHeight * 0.07), // Add padding at the top to compensate for the shift
-                  child: const QuickActions(),
+                
+                // Service cards section (responsive positioning)
+                Positioned(
+                  top: serviceCardsTop,
+                  left: 0,
+                  right: 0,
+                  bottom: bottomSectionHeight, // Anchor to the bottom section to avoid overlap
+                  child: _isLoading 
+                    ? _buildLoadingState()
+                    : filteredServices.isEmpty 
+                      ? _buildEmptyState()
+                      : ListView.builder(
+                          itemCount: filteredServices.length,
+                          scrollDirection: Axis.horizontal,
+                          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03), // Responsive padding
+                          clipBehavior: Clip.none, // Allow cards to overflow if needed
+                          physics: const BouncingScrollPhysics(),
+                          itemBuilder: (context, index) {
+                            ServiceItem service = filteredServices[index];
+                            return ServiceCard(service: service);
+                          },
+                        ),
                 ),
-              ),
+                
+                // Bottom section (quick actions) - adjusted 20% lower
+                Positioned(
+                  bottom: -(screenHeight * 0.06), // Push down by 20% of the original height (35% * 0.2 = 7%)
+                  left: 0,
+                  right: 0,
+                  height: (bottomSectionHeight * 1.2) + (safeAreaBottom > 0 ? safeAreaBottom : 0), // Increase height by 20%
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(36), // Match top section curve
+                        topRight: Radius.circular(36),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          offset: const Offset(0, -2),
+                          blurRadius: 6,
+                        )
+                      ],
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.only(top: screenHeight * 0.07), // Add padding at the top to compensate for the shift
+                      child: const QuickActions(),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -429,7 +435,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AuthProvider authProvider) {
     // Get screen dimensions
     final screenWidth = MediaQuery.of(context).size.width;
     final avatarSize = screenWidth * 0.1; // 10% of screen width for avatar
@@ -447,7 +453,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 radius: avatarSize / 2,
                 backgroundColor: Colors.white.withOpacity(0.2),
                 child: Text(
-                  "M",
+                  authProvider.user?.username.substring(0, 1).toUpperCase() ?? "U",
                   style: ResponsiveText.style(
                     context: context,
                     fontSize: 16,
@@ -456,56 +462,77 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   ),
                 ),
               ),
-              SizedBox(width: screenWidth * 0.02), // 2% of screen width
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: screenWidth * 0.02, // 2% of screen width
-                  vertical: 4,
-                ),
+              // SizedBox(width: screenWidth * 0.02), // 2% of screen width
+              // Container(
+              //   padding: EdgeInsets.symmetric(
+              //     horizontal: screenWidth * 0.02, // 2% of screen width
+              //     vertical: 4,
+              //   ),
+              //   decoration: BoxDecoration(
+              //     color: Colors.white.withOpacity(0.2),
+              //     borderRadius: BorderRadius.circular(12),
+              //   ),
+              //   child: Text(
+              //     "Perfil",
+              //     style: ResponsiveText.style(
+              //       context: context,
+              //       fontSize: 12,
+              //       fontWeight: FontWeight.w600,
+              //       color: Colors.white,
+              //     ),
+              //   ),
+              // ),
+            ],
+          ),
+        ),
+        Row(
+          children: [
+            // Botão de logout
+            GestureDetector(
+              onTap: () => _showLogoutDialog(authProvider),
+              child: Container(
+                padding: EdgeInsets.all(screenWidth * 0.02), // 2% of screen width
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(
-                  "Perfil",
-                  style: ResponsiveText.style(
-                    context: context,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
+                child: Icon(
+                  Icons.logout,
+                  color: Colors.white,
+                  size: screenWidth * 0.06, // 6% of screen width
                 ),
               ),
-            ],
-          ),
-        ),
-        Container(
-          padding: EdgeInsets.all(screenWidth * 0.02), // 2% of screen width
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Stack(
-            children: [
-              Icon(
-                Icons.notifications_outlined,
-                color: Colors.white,
-                size: screenWidth * 0.06, // 6% of screen width
-              ),
-              Positioned(
-                right: 0,
-                top: 0,
-                child: Container(
-                  width: screenWidth * 0.02, // 2% of screen width
-                  height: screenWidth * 0.02, // 2% of screen width
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFF6B6B),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+            // SizedBox(width: screenWidth * 0.02), // Espaço entre os botões
+            // Container(
+            //   padding: EdgeInsets.all(screenWidth * 0.02), // 2% of screen width
+            //   decoration: BoxDecoration(
+            //     color: Colors.white.withOpacity(0.2),
+            //     borderRadius: BorderRadius.circular(12),
+            //   ),
+            //   child: Stack(
+            //     children: [
+            //       Icon(
+            //         Icons.notifications_outlined,
+            //         color: Colors.white,
+            //         size: screenWidth * 0.06, // 6% of screen width
+            //       ),
+            //       Positioned(
+            //         right: 0,
+            //         top: 0,
+            //         child: Container(
+            //           width: screenWidth * 0.02, // 2% of screen width
+            //           height: screenWidth * 0.02, // 2% of screen width
+            //           decoration: const BoxDecoration(
+            //             color: Color(0xFFFF6B6B),
+            //             shape: BoxShape.circle,
+            //           ),
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+          ],
         ),
       ],
     );
@@ -760,5 +787,76 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
-  // End of the class
+  Widget _buildGreetingSection(AuthProvider authProvider) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final userName = authProvider.user?.username ?? "Usuário";
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Olá, $userName!",
+          style: ResponsiveText.style(
+            context: context,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            shadows: [
+              const Shadow(
+                color: Colors.black26,
+                blurRadius: 4,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: screenWidth * 0.01), // 1% of screen width
+        Text(
+          "Bem-vindo de volta ao seu painel",
+          style: ResponsiveText.style(
+            context: context,
+            fontSize: 14,
+            color: Colors.white.withOpacity(0.9),
+            shadows: [
+              const Shadow(
+                color: Colors.black26,
+                blurRadius: 2,
+                offset: Offset(0, 1),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showLogoutDialog(AuthProvider authProvider) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmar Logout'),
+          content: const Text('Tem certeza que deseja sair da sua conta?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop(); // Fechar o dialog
+                await authProvider.logout(); // Fazer logout
+                // Navegar para a tela de login
+                Navigator.of(context).pushReplacementNamed('/login');
+              },
+              child: const Text(
+                'Sair',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }

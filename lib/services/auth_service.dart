@@ -8,7 +8,7 @@ import '../models/auth/user.dart';
 class AuthService {
   // Substitua pela URL da sua API
   // static const String baseUrl = 'http://localhost:3000/api';
-  static const String baseUrl = 'https://ecabb630694a.ngrok-free.app/api';
+  static const String baseUrl = 'https://82505d83b1a7.ngrok-free.app/api';
   static const String tokenKey = 'auth_token';
   static const String userIdKey = 'user_id';
 
@@ -102,7 +102,7 @@ class AuthService {
   // Verificar se o usuário está autenticado
   Future<bool> isAuthenticated() async {
     final authData = await _getAuthData();
-    return authData['token'] != null;
+    return authData['token'] != null && authData['token']!.isNotEmpty;
   }
 
   // Logout

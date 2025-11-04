@@ -23,9 +23,17 @@ class AuthProvider with ChangeNotifier {
   String get errorMessage => _errorMessage;
   bool get isAuthenticated => _status == AuthStatus.authenticated;
 
+  // Future para aguardar a verificação inicial completar
+  Future<void>? _authCheckFuture;
+
   AuthProvider() {
     // Verificar o estado de autenticação quando o provider é criado
-    _checkAuthStatus();
+    _authCheckFuture = _checkAuthStatus();
+  }
+
+  // Método para aguardar a verificação de autenticação completar
+  Future<void> waitForAuthCheck() {
+    return _authCheckFuture ?? Future.value();
   }
 
   Future<void> _checkAuthStatus() async {
@@ -36,12 +44,20 @@ class AuthProvider with ChangeNotifier {
       final isAuth = await _authService.isAuthenticated();
 
       if (isAuth) {
-        _user = await _authService.getUserProfile();
-        _status = AuthStatus.authenticated;
+        // Tentar buscar o perfil do usuário
+        try {
+          _user = await _authService.getUserProfile();
+          _status = AuthStatus.authenticated;
+        } catch (profileError) {
+          print('⚠️ Não foi possível buscar perfil: $profileError');
+          // Mesmo sem perfil, considera autenticado se tem token
+          _status = AuthStatus.authenticated;
+        }
       } else {
         _status = AuthStatus.unauthenticated;
       }
     } catch (e) {
+      print('❌ Erro na verificação de autenticação: $e');
       _status = AuthStatus.unauthenticated;
       _errorMessage = e.toString();
     }

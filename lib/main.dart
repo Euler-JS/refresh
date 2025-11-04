@@ -13,6 +13,8 @@ import 'screens/splash_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
+import 'screens/subscription_screen.dart';
+import 'screens/payment_screen.dart';
 import 'providers/auth_provider.dart';
 import 'more_detail.dart';
 
@@ -126,12 +128,22 @@ class MyApp extends StatelessWidget {
           '/clients': (context) => const ClientsPage(),
           '/services': (context) => const ServicesPage(),
           '/public-schedule': (context) => const PublicSchedulePage(),
+          '/subscription': (context) => const SubscriptionScreen(),
         },
         onGenerateRoute: (settings) {
           if (settings.name == '/service-detail') {
             final service = settings.arguments as ServiceItem;
             return MaterialPageRoute(
               builder: (context) => MoreDetail(service: service),
+            );
+          }
+          if (settings.name == '/payment') {
+            final args = settings.arguments as Map<String, dynamic>;
+            return MaterialPageRoute(
+              builder: (context) => PaymentScreen(
+                plan: args['plan'],
+                onPaymentSuccess: args['onPaymentSuccess'],
+              ),
             );
           }
           return null;

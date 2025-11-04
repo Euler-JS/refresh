@@ -25,29 +25,15 @@ class _SplashScreenState extends State<SplashScreen> {
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    // Espera o provider terminar a verificação
-    if (authProvider.status == AuthStatus.initial ||
-        authProvider.status == AuthStatus.authenticating) {
-      // Espera até que o provider termine
-      authProvider.addListener(_onAuthStateChanged);
-    } else {
-      // Já tem o status, navega para a tela apropriada
-      _navigateToNextScreen(authProvider.status);
+    // Aguardar a verificação de autenticação completar
+    try {
+      await authProvider.waitForAuthCheck();
+    } catch (e) {
+      print('Erro ao aguardar verificação de auth: $e');
     }
-  }
 
-  void _onAuthStateChanged() {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-    if (authProvider.status != AuthStatus.initial &&
-        authProvider.status != AuthStatus.authenticating) {
-      authProvider.removeListener(_onAuthStateChanged);
-      _navigateToNextScreen(authProvider.status);
-    }
-  }
-
-  void _navigateToNextScreen(AuthStatus status) {
-    if (status == AuthStatus.authenticated) {
+    // Verificar o status final
+    if (authProvider.status == AuthStatus.authenticated) {
       Navigator.of(context).pushReplacementNamed('/home');
     } else {
       Navigator.of(context).pushReplacementNamed('/login');
