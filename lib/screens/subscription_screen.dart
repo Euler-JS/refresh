@@ -1,9 +1,11 @@
 // lib/screens/subscription_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'checkout_webview_screen.dart';
 
 // URL base da API (mesma do auth_service.dart)
 // Para desenvolvimento local, use: 'http://10.0.2.2:3000/api' (Android Emulator)
@@ -235,34 +237,59 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         print('   📅 Days Remaining: ${data['daysRemaining']}');
         print('   ✔️  Is Valid: ${data['isValid']}');
         
-        // Extrair checkoutUrl para pagamento
+        // Extrair checkoutUrl e referência para pagamento
         final checkoutUrl = data['payment']?['checkoutUrl'];
+        final paymentReference = data['payment']?['reference'];
         print('🔗 Checkout URL: $checkoutUrl');
+        print('📝 Payment Reference: $paymentReference');
+        
+        setState(() => _isCreatingSubscription = false);
         
         if (checkoutUrl != null && checkoutUrl.isNotEmpty) {
-          print('🌐 Abrindo URL de pagamento...');
-          try {
-            // Abrir URL de pagamento no navegador
-            final Uri uri = Uri.parse(checkoutUrl);
-            await launchUrl(uri, mode: LaunchMode.externalApplication);
-            print('✅ URL de pagamento aberta com sucesso!');
-          } catch (urlError) {
-            print('❌ Erro ao abrir URL: $urlError');
-            // Tentar abrir em uma nova aba (funciona melhor no web)
+          if (kIsWeb) {
+            // No Web, abrir em nova aba
+            print('🌐 Abrindo URL de pagamento em nova aba (Web)...');
             try {
               final Uri uri = Uri.parse(checkoutUrl);
-              await launchUrl(uri, mode: LaunchMode.platformDefault);
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
               print('✅ URL aberta em nova aba!');
+              
+              // Mostrar mensagem informando que o pagamento foi aberto em nova aba
+              _showSuccessMessage("Complete o pagamento na nova aba!");
+              await _loadSubscription();
             } catch (e) {
-              print('❌ Não foi possível abrir a URL de pagamento: $e');
+              print('❌ Erro ao abrir URL: $e');
+              _showSuccessMessage("Erro ao abrir pagamento. Tente novamente.");
+            }
+          } else {
+            // No Mobile, usar WebView
+            print('📱 Abrindo WebView de pagamento (Mobile)...');
+            
+            // Navegar para a tela de WebView com o checkout
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CheckoutWebViewScreen(
+                  checkoutUrl: checkoutUrl,
+                  paymentReference: paymentReference ?? 'N/A',
+                ),
+              ),
+            );
+            
+            if (result == true) {
+              print('✅ Retornou da WebView com sucesso!');
+              // Recarregar dados da subscrição
+              await _loadSubscription();
+              _showSuccessMessage("Pagamento em processamento!");
+            } else {
+              print('⚠️ Usuário cancelou o pagamento');
             }
           }
+        } else {
+          // Subscrição criada mas sem URL de checkout
+          await _loadSubscription();
+          _showSuccessMessage("Subscrição criada!");
         }
-        
-        // Subscrição criada com sucesso, recarregue os dados
-        await _loadSubscription();
-        setState(() => _isCreatingSubscription = false);
-        _showSuccessMessage("Subscrição criada! Complete o pagamento.");
       } else {
         final data = json.decode(response.body);
         print('❌ Erro ao criar subscrição');
