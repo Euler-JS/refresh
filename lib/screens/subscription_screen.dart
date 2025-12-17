@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // URL base da API (mesma do auth_service.dart)
 // Para desenvolvimento local, use: 'http://10.0.2.2:3000/api' (Android Emulator)
 // Para ngrok, use: 'https://SEU_NGROK_URL.ngrok-free.app/api'
-const String _apiBaseUrl = 'https://82505d83b1a7.ngrok-free.app/api';
+// const String _apiBaseUrl = 'https://82505d83b1a7.ngrok-free.app/api';
+const String _apiBaseUrl = 'http://localhost:3000/api';
 
 class SubscriptionModel {
   final String id;
@@ -152,7 +154,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       }
 
       final response = await http.get(
-        Uri.parse('$_apiBaseUrl/subscriptions'),
+        Uri.parse('$_apiBaseUrl/subscription'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -186,17 +188,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   // Criar nova subscrição
   Future<void> _createSubscription(String planType) async {
     // Primeiro, navegar para a tela de pagamento
-    final paymentResult = await Navigator.pushNamed(
-      context,
-      '/payment',
-      arguments: {
-        'plan': _plans[_selectedPlanIndex],
-        'onPaymentSuccess': () => _processSubscription(planType),
-      },
-    );
-
-    // Se o pagamento foi cancelado, não fazer nada
-    if (paymentResult != true) return;
+   _processSubscription(planType);
   }
 
   // Processar a assinatura após pagamento bem-sucedido
@@ -215,6 +207,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         return;
       }
 
+      print('📤 Enviando requisição de subscrição...');
+      print('🔑 Token: $token');
+      print('📋 Plano: $planType');
+
       final response = await http.post(
         Uri.parse('$_apiBaseUrl/subscriptions'),
         headers: {
@@ -226,18 +222,59 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         }),
       );
 
+      print('📥 Resposta recebida!');
+      print('🔢 Status Code: ${response.statusCode}');
+      print('📄 Response Body: ${response.body}');
+
       if (response.statusCode == 201) {
+        final data = json.decode(response.body);
+        print('✅ Subscrição criada com sucesso!');
+        print('📦 RESPOSTA COMPLETA DO SERVIDOR:');
+        print('   📄 Subscription: ${json.encode(data['subscription'])}');
+        print('   💳 Payment: ${json.encode(data['payment'])}');
+        print('   📅 Days Remaining: ${data['daysRemaining']}');
+        print('   ✔️  Is Valid: ${data['isValid']}');
+        
+        // Extrair checkoutUrl para pagamento
+        final checkoutUrl = data['payment']?['checkoutUrl'];
+        print('🔗 Checkout URL: $checkoutUrl');
+        
+        if (checkoutUrl != null && checkoutUrl.isNotEmpty) {
+          print('🌐 Abrindo URL de pagamento...');
+          try {
+            // Abrir URL de pagamento no navegador
+            final Uri uri = Uri.parse(checkoutUrl);
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+            print('✅ URL de pagamento aberta com sucesso!');
+          } catch (urlError) {
+            print('❌ Erro ao abrir URL: $urlError');
+            // Tentar abrir em uma nova aba (funciona melhor no web)
+            try {
+              final Uri uri = Uri.parse(checkoutUrl);
+              await launchUrl(uri, mode: LaunchMode.platformDefault);
+              print('✅ URL aberta em nova aba!');
+            } catch (e) {
+              print('❌ Não foi possível abrir a URL de pagamento: $e');
+            }
+          }
+        }
+        
         // Subscrição criada com sucesso, recarregue os dados
         await _loadSubscription();
-        _showSuccessMessage("Subscrição criada com sucesso!");
+        setState(() => _isCreatingSubscription = false);
+        _showSuccessMessage("Subscrição criada! Complete o pagamento.");
       } else {
         final data = json.decode(response.body);
+        print('❌ Erro ao criar subscrição');
+        print('⚠️ Mensagem de erro: ${data['message']}');
+        
         setState(() {
           _error = data['message'] ?? "Erro ao criar subscrição";
           _isCreatingSubscription = false;
         });
       }
     } catch (e) {
+      print('💥 Erro na requisição: $e');
       setState(() {
         _error = "Erro de conexão. Verifique sua internet.";
         _isCreatingSubscription = false;
