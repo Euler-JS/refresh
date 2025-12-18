@@ -15,6 +15,7 @@ import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/subscription_screen.dart';
 import 'screens/payment_screen.dart';
+import 'screens/profile_screen.dart';
 import 'providers/auth_provider.dart';
 import 'more_detail.dart';
 
@@ -129,6 +130,7 @@ class MyApp extends StatelessWidget {
           '/services': (context) => const ServicesPage(),
           '/public-schedule': (context) => const PublicSchedulePage(),
           '/subscription': (context) => const SubscriptionScreen(),
+          '/profile': (context) => const ProfileScreen(),
         },
         onGenerateRoute: (settings) {
           if (settings.name == '/service-detail') {

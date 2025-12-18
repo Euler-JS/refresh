@@ -443,21 +443,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       children: [
         GestureDetector(
           onTap: () {
-            // Navigate to profile/settings
+            Navigator.pushNamed(context, '/profile');
           },
           child: Row(
             children: [
               CircleAvatar(
                 radius: avatarSize / 2,
                 backgroundColor: Colors.white.withOpacity(0.2),
-                child: Text(
-                  authProvider.user?.username.substring(0, 1).toUpperCase() ?? "U",
-                  style: ResponsiveText.style(
-                    context: context,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                child: Icon(
+                  Icons.person,
+                  color: Colors.white,
+                  size: avatarSize * 0.6,
                 ),
               ),
               // SizedBox(width: screenWidth * 0.02), // 2% of screen width
