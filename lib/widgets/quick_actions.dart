@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../utils/responsive_text.dart';
 
 class QuickActions extends StatelessWidget {
-  const QuickActions({super.key});
+  final VoidCallback? onNavigationReturn;
+  
+  const QuickActions({super.key, this.onNavigationReturn});
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +43,9 @@ class QuickActions extends StatelessWidget {
                   title: "Serviços",
                   color: const Color(0xFF6A4C93),
                   onTap: () {
-                    Navigator.pushNamed(context, '/services');
+                    Navigator.pushNamed(context, '/services').then((_) {
+                      if (onNavigationReturn != null) onNavigationReturn!();
+                    });
                   },
                 ),
                 _buildActionCard(
@@ -50,7 +54,9 @@ class QuickActions extends StatelessWidget {
                   title: "Minha Agenda",
                   color: const Color(0xFF4ECDC4),
                   onTap: () {
-                    Navigator.pushNamed(context, '/schedule');
+                    Navigator.pushNamed(context, '/schedule').then((_) {
+                      if (onNavigationReturn != null) onNavigationReturn!();
+                    });
                   },
                 ),
                 _buildActionCard(
@@ -59,7 +65,9 @@ class QuickActions extends StatelessWidget {
                   title: "Receber",
                   color: const Color(0xFFFFE66D),
                   onTap: () {
-                    Navigator.pushNamed(context, '/payments');
+                    Navigator.pushNamed(context, '/payments').then((_) {
+                      if (onNavigationReturn != null) onNavigationReturn!();
+                    });
                   },
                 ),
                 _buildActionCard(
@@ -68,7 +76,9 @@ class QuickActions extends StatelessWidget {
                   title: "Clientes",
                   color: const Color(0xFFFF6B6B),
                   onTap: () {
-                    Navigator.pushNamed(context, '/clients');
+                    Navigator.pushNamed(context, '/clients').then((_) {
+                      if (onNavigationReturn != null) onNavigationReturn!();
+                    });
                   },
                 ),
               ],

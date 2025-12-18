@@ -54,12 +54,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Recarregar dados sempre que a tela for acessada
-    _loadData();
-  }
+  // Remover didChangeDependencies para evitar recarregamentos excessivos
+  // Usar callback de navegação ao invés
 
   Future<void> _loadData() async {
     if (!mounted) return; // Verificar se o widget ainda está montado
@@ -300,7 +296,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     ),
                     child: Padding(
                       padding: EdgeInsets.only(top: screenHeight * 0.07), // Add padding at the top to compensate for the shift
-                      child: const QuickActions(),
+                      child: QuickActions(
+                        onNavigationReturn: _loadData, // Recarregar dados ao retornar
+                      ),
                     ),
                   ),
                 ),
@@ -549,7 +547,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               MaterialPageRoute(
                 builder: (context) => const SchedulePage(),
               ),
-            );
+            ).then((_) => _loadData()); // Recarregar ao voltar
           },
           child: _buildStatCard(
             icon: Icons.schedule,
@@ -565,7 +563,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               MaterialPageRoute(
                 builder: (context) => const SchedulePage(),
               ),
-            );
+            ).then((_) => _loadData()); // Recarregar ao voltar
           },
           child: _buildStatCard(
             icon: Icons.check_circle,
@@ -581,7 +579,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               MaterialPageRoute(
                 builder: (context) => const PaymentsPage(),
               ),
-            );
+            ).then((_) => _loadData()); // Recarregar ao voltar
           },
           child: _buildStatCard(
             icon: Icons.payments,
