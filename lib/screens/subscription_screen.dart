@@ -12,6 +12,7 @@ import 'checkout_webview_screen.dart';
 // Para ngrok, use: 'https://SEU_NGROK_URL.ngrok-free.app/api'
 // const String _apiBaseUrl = 'https://82505d83b1a7.ngrok-free.app/api';
 const String _apiBaseUrl = 'http://localhost:3000/api';
+// const String _apiBaseUrl = 'https://refresh-api.manna.software/api';
 
 class SubscriptionModel {
   final String id;
@@ -156,7 +157,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       }
 
       final response = await http.get(
-        Uri.parse('$_apiBaseUrl/subscription'),
+        Uri.parse('$_apiBaseUrl/subscriptions'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

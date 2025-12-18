@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/service.dart';
 import '../services/service_storage_service.dart';
+import '../services/subscription_service.dart';
 import 'add_service_page.dart';
 import 'edit_service_page.dart';
+import 'subscription_screen.dart';
 
 class ServicesPage extends StatefulWidget {
   const ServicesPage({super.key});
@@ -26,6 +28,15 @@ class _ServicesPageState extends State<ServicesPage> {
   }
 
   Future<void> _addNewService() async {
+    // Verificar se tem subscrição ativa
+    final hasSubscription = await SubscriptionService.instance.hasActiveSubscription();
+    
+    // Se não tem subscrição e já tem 5 ou mais serviços, bloquear
+    if (!hasSubscription && _services.length >= 5) {
+      _showSubscriptionRequiredDialog();
+      return;
+    }
+    
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const AddServicePage()),
@@ -184,6 +195,8 @@ class _ServicesPageState extends State<ServicesPage> {
                 ),
                 textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 12),
+              _buildServiceLimitBadge(),
               const SizedBox(height: 20),
               _buildStatsRow(),
               const SizedBox(height: 20),
@@ -222,6 +235,64 @@ class _ServicesPageState extends State<ServicesPage> {
           color: const Color(0xFF95E1D3),
         ),
       ],
+    );
+  }
+
+  Widget _buildServiceLimitBadge() {
+    return FutureBuilder<bool>(
+      future: SubscriptionService.instance.hasActiveSubscription(),
+      builder: (context, snapshot) {
+        // Se tem subscrição ativa, não mostra nada
+        if (snapshot.data == true) {
+          return const SizedBox.shrink();
+        }
+
+        final servicesUsed = _services.length;
+        final servicesRemaining = 5 - servicesUsed;
+        final isNearLimit = servicesRemaining <= 2;
+        final isAtLimit = servicesRemaining <= 0;
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: isAtLimit 
+              ? Colors.red.withOpacity(0.2)
+              : isNearLimit 
+                ? Colors.orange.withOpacity(0.2)
+                : Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isAtLimit 
+                ? Colors.red
+                : isNearLimit 
+                  ? Colors.orange
+                  : Colors.white.withOpacity(0.5),
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isAtLimit ? Icons.block : Icons.info_outline,
+                color: Colors.white,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                isAtLimit
+                  ? 'Limite atingido • Faça assinatura para continuar'
+                  : 'Plano Gratuito: $servicesUsed/5 serviços usados',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -772,13 +843,130 @@ class _ServicesPageState extends State<ServicesPage> {
       return "Hoje";
     } else if (difference == 1) {
       return "Ontem";
-    } else if (difference < 30) {
-      return "${difference}d atrás";
-    } else if (difference < 365) {
-      final months = (difference / 30).floor();
-      return "${months}m atrás";
     } else {
-      return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
+      return "${date.day}/${date.month}/${date.year}";
     }
+  }
+
+  void _showSubscriptionRequiredDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFE66D).withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.lock_outline,
+                color: Color(0xFF6A4C93),
+                size: 32,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'Limite Atingido',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Você atingiu o limite de 5 serviços do plano gratuito.',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF6A4C93), Color(0xFF8E44AD)],
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Com a assinatura, você terá:',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildBenefitItem('✓ Serviços ilimitados'),
+                  _buildBenefitItem('✓ Gestão completa de clientes'),
+                  _buildBenefitItem('✓ Relatórios avançados'),
+                  _buildBenefitItem('✓ Suporte prioritário'),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Voltar',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // Navegar para tela de subscrição
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SubscriptionScreen(),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6A4C93),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'Fazer Assinatura',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBenefitItem(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 13,
+        ),
+      ),
+    );
   }
 }

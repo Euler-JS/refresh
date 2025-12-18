@@ -7,8 +7,8 @@ import '../models/auth/user.dart';
 
 class AuthService {
   // Substitua pela URL da sua API
-  // static const String baseUrl = 'http://localhost:3000/api';
   static const String baseUrl = 'http://localhost:3000/api';
+  // static const String baseUrl = 'https://refresh-api.manna.software/api';
   static const String tokenKey = 'auth_token';
   static const String userIdKey = 'user_id';
 
