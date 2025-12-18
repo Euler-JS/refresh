@@ -3,7 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SubscriptionService {
-  static const String _apiBaseUrl = 'http://localhost:3000/api';
+  // static const String _apiBaseUrl = 'http://localhost:3000/api';
+  static const String _apiBaseUrl = 'https://refresh-api.manna.software/api';
   
   static SubscriptionService? _instance;
   static SubscriptionService get instance {
