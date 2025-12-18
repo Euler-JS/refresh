@@ -81,6 +81,17 @@ class QuickActions extends StatelessWidget {
                     });
                   },
                 ),
+                _buildActionCard(
+                  context: context,
+                  icon: Icons.assessment,
+                  title: "Relatórios",
+                  color: const Color(0xFF4ECDC4),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/reports').then((_) {
+                      if (onNavigationReturn != null) onNavigationReturn!();
+                    });
+                  },
+                ),
               ],
             ),
           ),
