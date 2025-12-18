@@ -228,19 +228,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       
                       // Header
                       _buildHeader(),
-                      SizedBox(height: screenHeight * 0.015), // 1.5% of screen height - reduced
+                      SizedBox(height: screenHeight * 0.01), // Reduced spacing
                       
                       // Greeting and Status
                       // _buildGreetingSection(),
-                      SizedBox(height: screenHeight * 0.02), // 2% of screen height - reduced
+                      SizedBox(height: screenHeight * 0.015), // Reduced spacing
                       
                       // Stats section
                       _buildStatsSection(),
-                      SizedBox(height: screenHeight * 0.02), // Space between stats and filters
+                      SizedBox(height: screenHeight * 0.015), // Reduced spacing
                       
                       // Category filters
                       _buildFilterChips(),
@@ -580,12 +580,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     return Container(
       width: cardWidth,
       padding: EdgeInsets.symmetric(
-        horizontal: screenWidth * 0.02, // Further reduced horizontal padding
-        vertical: 6, // Half the vertical padding
+        horizontal: screenWidth * 0.015, // More compact
+        vertical: 4, // More compact
       ),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(14), // Slightly smaller radius
+        borderRadius: BorderRadius.circular(12), // Smaller radius
         border: Border.all(
           color: Colors.white.withOpacity(0.3),
           width: 1,
@@ -593,8 +593,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
-            blurRadius: 4, // Smaller blur
-            offset: const Offset(0, 1), // Smaller offset
+            blurRadius: 3,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
@@ -603,13 +603,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         children: [
           // Icon on left side
           Container(
-            padding: const EdgeInsets.all(4), // Smaller padding
-            margin: const EdgeInsets.only(right: 4),
+            padding: const EdgeInsets.all(3), // More compact
+            margin: const EdgeInsets.only(right: 3),
             decoration: BoxDecoration(
               color: color.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: Colors.white, size: 16), // Smaller icon
+            child: Icon(icon, color: Colors.white, size: 14), // Smaller icon
           ),
           // Text on right side
           Expanded(
@@ -621,7 +621,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   value,
                   style: ResponsiveText.style(
                     context: context,
-                    fontSize: 16, // Smaller font
+                    fontSize: 14, // Smaller font
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                     shadows: [
@@ -637,7 +637,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   title,
                   style: ResponsiveText.style(
                     context: context,
-                    fontSize: 10, // Smaller font
+                    fontSize: 9, // Smaller font
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                     shadows: [
@@ -694,11 +694,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         
         // Filter chips - horizontal scrolling row
         SizedBox(
-          height: 34, // Fixed height for filters
+          height: 30, // More compact height for filters
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: categoryList.length,
@@ -712,8 +712,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   });
                 },
                 child: Container(
-                  margin: const EdgeInsets.only(right: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  margin: const EdgeInsets.only(right: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: isSelected ? Colors.white : Colors.white.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(16),
