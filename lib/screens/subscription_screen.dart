@@ -11,8 +11,8 @@ import 'checkout_webview_screen.dart';
 // Para desenvolvimento local, use: 'http://10.0.2.2:3000/api' (Android Emulator)
 // Para ngrok, use: 'https://SEU_NGROK_URL.ngrok-free.app/api'
 // const String _apiBaseUrl = 'https://82505d83b1a7.ngrok-free.app/api';
-const String _apiBaseUrl = 'http://localhost:3000/api';
-// const String _apiBaseUrl = 'https://refresh-api.manna.software/api';
+// const String _apiBaseUrl = 'http://localhost:3000/api';
+const String _apiBaseUrl = 'https://refresh-api.manna.software/api';
 
 class SubscriptionModel {
   final String id;
@@ -308,10 +308,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         _isCreatingSubscription = false;
       });
     }
-  }  // Renovar subscrição existente
+  }  // Verificar status da subscrição e abrir pagamento se pendente
   Future<void> _renewSubscription() async {
-    if (_subscription == null) return;
-
     setState(() => _isCreatingSubscription = true);
 
     try {
@@ -326,26 +324,106 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         return;
       }
 
-      final response = await http.patch(
-        Uri.parse('$_apiBaseUrl/subscriptions/${_subscription!.id}/renew'),
+      print('📤 Buscando status atualizado da subscrição na API...');
+
+      // Primeiro, buscar o status atualizado da subscrição na API
+      final subscriptionResponse = await http.get(
+        Uri.parse('$_apiBaseUrl/subscriptions'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
       );
 
-      if (response.statusCode == 200) {
-        // Subscrição renovada com sucesso, recarregue os dados
-        await _loadSubscription();
-        _showSuccessMessage("Subscrição renovada com sucesso!");
-      } else {
-        final data = json.decode(response.body);
+      print('📥 Resposta da subscrição recebida!');
+      print('🔢 Status Code: ${subscriptionResponse.statusCode}');
+      print('📄 Response Body: ${subscriptionResponse.body}');
+
+      if (subscriptionResponse.statusCode == 200) {
+        final subscriptionData = json.decode(subscriptionResponse.body);
+        final currentStatus = subscriptionData['subscription']['status'];
+        final subscriptionId = subscriptionData['subscription']['_id'];
+        
+        print('🔍 Status atual da API: $currentStatus');
+
+        // Verificar se a subscrição está pendente (qualquer variação de pending)
+        if (currentStatus == 'pendente' || 
+            currentStatus == 'pending' || 
+            currentStatus == 'pending_payment') {
+          print('⏳ Subscrição com pagamento pendente, extraindo URL de pagamento...');
+          
+          // Extrair informações de pagamento diretamente da resposta
+          final checkoutUrl = subscriptionData['payment']?['checkoutUrl'];
+          final paymentReference = subscriptionData['payment']?['reference'];
+          
+          print('🔗 Checkout URL: $checkoutUrl');
+          print('📝 Payment Reference: $paymentReference');
+          print('📦 Dados completos do pagamento: ${json.encode(subscriptionData['payment'])}');
+
+          setState(() => _isCreatingSubscription = false);
+
+          if (checkoutUrl != null && checkoutUrl.isNotEmpty) {
+            if (kIsWeb) {
+              // No Web, abrir em nova aba
+              print('🌐 Abrindo URL de pagamento em nova aba (Web)...');
+              try {
+                final Uri uri = Uri.parse(checkoutUrl);
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                print('✅ URL aberta em nova aba!');
+                
+                _showSuccessMessage("Complete o pagamento na nova aba!");
+                await _loadSubscription();
+              } catch (e) {
+                print('❌ Erro ao abrir URL: $e');
+                _showSuccessMessage("Erro ao abrir pagamento. Tente novamente.");
+              }
+            } else {
+              // No Mobile, usar WebView
+              print('📱 Abrindo WebView de pagamento (Mobile)...');
+              
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CheckoutWebViewScreen(
+                    checkoutUrl: checkoutUrl,
+                    paymentReference: paymentReference ?? 'N/A',
+                  ),
+                ),
+              );
+              
+              if (result == true) {
+                print('✅ Retornou da WebView com sucesso!');
+                await _loadSubscription();
+                _showSuccessMessage("Pagamento em processamento!");
+              } else {
+                print('⚠️ Usuário cancelou o pagamento');
+              }
+            }
+          } else {
+            setState(() {
+              _error = "URL de pagamento não encontrada";
+              _isCreatingSubscription = false;
+            });
+          }
+        } else {
+          // Subscrição não está pendente
+          setState(() => _isCreatingSubscription = false);
+          _showSuccessMessage("Subscrição já está $currentStatus");
+        }
+      } else if (subscriptionResponse.statusCode == 404) {
         setState(() {
-          _error = data['message'] ?? "Erro ao renovar subscrição";
+          _error = "Nenhuma subscrição encontrada";
+          _isCreatingSubscription = false;
+        });
+      } else {
+        final data = json.decode(subscriptionResponse.body);
+        setState(() {
+          _error = data['message'] ?? "Erro ao verificar subscrição";
           _isCreatingSubscription = false;
         });
       }
     } catch (e) {
+      print('💥 Erro na requisição: $e');
       setState(() {
         _error = "Erro de conexão. Verifique sua internet.";
         _isCreatingSubscription = false;
