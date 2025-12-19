@@ -210,17 +210,19 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
+              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
               onPressed: () => Navigator.pop(context),
             ),
           ),
@@ -229,14 +231,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
               child: Text(
                 "Relatórios",
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 56),
+          const SizedBox(width: 48),
         ],
       ),
     );
@@ -244,16 +246,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Widget _buildFilters() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            spreadRadius: 1,
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            spreadRadius: 0,
           ),
         ],
       ),
@@ -266,7 +268,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
               const Text(
                 'Filtros',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF2C2C2C),
                 ),
@@ -274,29 +276,32 @@ class _ReportsScreenState extends State<ReportsScreen> {
               if (_startDate != null || _endDate != null || _selectedStatus != 'all')
                 TextButton.icon(
                   onPressed: _clearFilters,
-                  icon: const Icon(Icons.clear, size: 16),
-                  label: const Text('Limpar'),
+                  icon: const Icon(Icons.clear, size: 14),
+                  label: const Text('Limpar', style: TextStyle(fontSize: 12)),
                   style: TextButton.styleFrom(
                     foregroundColor: const Color(0xFF6A4C93),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           
           // Filtro de data
           InkWell(
             onTap: _selectDateRange,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey.shade300),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.date_range, color: Color(0xFF6A4C93)),
-                  const SizedBox(width: 12),
+                  const Icon(Icons.date_range, color: Color(0xFF6A4C93), size: 18),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       _startDate != null && _endDate != null
@@ -304,7 +309,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           : 'Selecionar período',
                       style: TextStyle(
                         color: _startDate != null ? Colors.black87 : Colors.grey,
-                        fontSize: 14,
+                        fontSize: 13,
                       ),
                     ),
                   ),
@@ -312,26 +317,28 @@ class _ReportsScreenState extends State<ReportsScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           
           // Filtro de status
           DropdownButtonFormField<String>(
             value: _selectedStatus,
             decoration: InputDecoration(
               labelText: 'Status',
-              prefixIcon: const Icon(Icons.filter_list, color: Color(0xFF6A4C93)),
+              labelStyle: const TextStyle(fontSize: 13),
+              prefixIcon: const Icon(Icons.filter_list, color: Color(0xFF6A4C93), size: 18),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              isDense: true,
             ),
             items: const [
-              DropdownMenuItem(value: 'all', child: Text('Todos')),
-              DropdownMenuItem(value: 'completado', child: Text('Completados')),
-              DropdownMenuItem(value: 'em_progresso', child: Text('Em Progresso')),
-              DropdownMenuItem(value: 'pendente', child: Text('Pendentes')),
-              DropdownMenuItem(value: 'cancelado', child: Text('Cancelados')),
-              DropdownMenuItem(value: 'confirmado', child: Text('Confirmados')),
+              DropdownMenuItem(value: 'all', child: Text('Todos', style: TextStyle(fontSize: 13))),
+              DropdownMenuItem(value: 'completado', child: Text('Completados', style: TextStyle(fontSize: 13))),
+              DropdownMenuItem(value: 'em_progresso', child: Text('Em Progresso', style: TextStyle(fontSize: 13))),
+              DropdownMenuItem(value: 'pendente', child: Text('Pendentes', style: TextStyle(fontSize: 13))),
+              DropdownMenuItem(value: 'cancelado', child: Text('Cancelados', style: TextStyle(fontSize: 13))),
+              DropdownMenuItem(value: 'confirmado', child: Text('Confirmados', style: TextStyle(fontSize: 13))),
             ],
             onChanged: (value) {
               setState(() {
@@ -347,16 +354,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Widget _buildStatistics() {
     return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            spreadRadius: 1,
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            spreadRadius: 0,
           ),
         ],
       ),
@@ -366,12 +373,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
           const Text(
             'Estatísticas',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 14,
               fontWeight: FontWeight.bold,
               color: Color(0xFF2C2C2C),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -382,7 +389,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   Colors.blue,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: _buildStatCard(
                   'Receita Total',
@@ -394,48 +401,59 @@ class _ReportsScreenState extends State<ReportsScreen> {
             ],
           ),
           if (_servicesByCategory.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            const Text(
-              'Por Categoria',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF666666),
+            const SizedBox(height: 10),
+            Theme(
+              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(top: 4, bottom: 8),
+                title: const Text(
+                  'Por Categoria',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF666666),
+                  ),
+                ),
+                trailing: Icon(
+                  Icons.expand_more,
+                  color: const Color(0xFF6A4C93),
+                  size: 20,
+                ),
+                children: _servicesByCategory.entries.map((entry) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 3),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            entry.key,
+                            style: const TextStyle(fontSize: 12),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF6A4C93).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '${entry.value} • ${_formatCurrency(_revenueByCategory[entry.key] ?? 0)}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF6A4C93),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
               ),
             ),
-            const SizedBox(height: 8),
-            ..._servicesByCategory.entries.map((entry) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        entry.key,
-                        style: const TextStyle(fontSize: 13),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF6A4C93).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${entry.value} • ${_formatCurrency(_revenueByCategory[entry.key] ?? 0)}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF6A4C93),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
           ],
         ],
       ),
@@ -444,30 +462,30 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Widget _buildStatCard(String label, String value, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Column(
         children: [
-          Icon(icon, color: color, size: 32),
-          const SizedBox(height: 8),
+          Icon(icon, color: color, size: 28),
+          const SizedBox(height: 6),
           Text(
             value,
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: color,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 3),
           Text(
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 10,
               color: Colors.grey[700],
             ),
           ),
@@ -515,7 +533,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
@@ -523,14 +541,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   'Serviços (${_filteredServices.length})',
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF2C2C2C),
                   ),
@@ -538,9 +556,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
               ],
             ),
           ),
+          const Divider(height: 1),
           Expanded(
             child: ListView.separated(
-              padding: const EdgeInsets.only(bottom: 20),
+              padding: const EdgeInsets.only(bottom: 16),
               itemCount: _filteredServices.length,
               separatorBuilder: (context, index) => const Divider(height: 1),
               itemBuilder: (context, index) {

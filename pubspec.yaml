@@ -101,14 +101,14 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "Images/refresh_logo_1.png"
+  image_path: "Images/refresh_logo_2.png"
   adaptive_icon_background: "#ffffff"
-  adaptive_icon_foreground: "Images/refresh_logo_1.png"
+  adaptive_icon_foreground: "Images/refresh_logo_2.png"
 
 # Configuração para splash screen
 flutter_native_splash:
   color: "#ffffff"
-  image: Images/refresh_logo_1.png
+  image: Images/refresh_logo_2.png
   android: true
   ios: true
   web: false
