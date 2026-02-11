@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'checkout_webview_screen.dart';
 
 // URL base da API (mesma do auth_service.dart)
 // Para desenvolvimento local, use: 'http://10.0.2.2:3000/api' (Android Emulator)
@@ -238,58 +237,66 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         print('   📅 Days Remaining: ${data['daysRemaining']}');
         print('   ✔️  Is Valid: ${data['isValid']}');
         
-        // Extrair checkoutUrl e referência para pagamento
-        final checkoutUrl = data['payment']?['checkoutUrl'];
-        final paymentReference = data['payment']?['reference'];
-        print('🔗 Checkout URL: $checkoutUrl');
+        // Extrair informações de pagamento e usuário
+        final paymentReference = data['payment']?['reference'] ?? 'N/A';
+        final amount = data['payment']?['amount'] ?? 0;
+        final planName = data['subscription']?['plan'] ?? planType;
+        final userId = data['subscription']?['user'] ?? prefs.getString('user_id') ?? 'N/A';
+        final userName = data['user']?['username'] ?? 'N/A';
+        
         print('📝 Payment Reference: $paymentReference');
+        print('💰 Amount: $amount MZN');
+        print('📋 Plan: $planName');
+        print('👤 User ID: $userId');
+        print('👤 User Name: $userName');
         
         setState(() => _isCreatingSubscription = false);
         
-        if (checkoutUrl != null && checkoutUrl.isNotEmpty) {
-          if (kIsWeb) {
-            // No Web, abrir em nova aba
-            print('🌐 Abrindo URL de pagamento em nova aba (Web)...');
-            try {
-              final Uri uri = Uri.parse(checkoutUrl);
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-              print('✅ URL aberta em nova aba!');
-              
-              // Mostrar mensagem informando que o pagamento foi aberto em nova aba
-              _showSuccessMessage("Complete o pagamento na nova aba!");
-              await _loadSubscription();
-            } catch (e) {
-              print('❌ Erro ao abrir URL: $e');
-              _showSuccessMessage("Erro ao abrir pagamento. Tente novamente.");
-            }
+        // Criar mensagem para WhatsApp com detalhes do pagamento
+        final String whatsappMessage = '''
+Olá! Gostaria de confirmar o pagamento da minha assinatura:
+
+👤 *Nome:* $userName
+🆔 *ID:* $userId
+📋 *Plano:* $planName
+💰 *Valor:* ${amount.toStringAsFixed(2)} MZN
+🔖 *Referência:* $paymentReference
+📅 *Data:* ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}
+
+Por favor, confirme o pagamento para ativar minha assinatura.
+        '''.trim();
+        
+        // Abrir WhatsApp com a mensagem
+        // Número do WhatsApp da empresa (adicione o número correto aqui)
+        final String phoneNumber = '258846151124'; // Trocar pelo número real
+        final String whatsappUrl = 'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(whatsappMessage)}';
+        
+        print('📱 Abrindo WhatsApp...');
+        print('🔗 URL: $whatsappUrl');
+        
+        try {
+          final Uri uri = Uri.parse(whatsappUrl);
+          final bool launched = await launchUrl(
+            uri,
+            mode: LaunchMode.externalApplication,
+          );
+          
+          if (launched) {
+            print('✅ WhatsApp aberto com sucesso!');
+            _showSuccessMessage("Complete o pagamento via WhatsApp!");
+            
+            // Recarregar a subscrição (que estará com status pendente)
+            await _loadSubscription();
           } else {
-            // No Mobile, usar WebView
-            print('📱 Abrindo WebView de pagamento (Mobile)...');
-            
-            // Navegar para a tela de WebView com o checkout
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => CheckoutWebViewScreen(
-                  checkoutUrl: checkoutUrl,
-                  paymentReference: paymentReference ?? 'N/A',
-                ),
-              ),
-            );
-            
-            if (result == true) {
-              print('✅ Retornou da WebView com sucesso!');
-              // Recarregar dados da subscrição
-              await _loadSubscription();
-              _showSuccessMessage("Pagamento em processamento!");
-            } else {
-              print('⚠️ Usuário cancelou o pagamento');
-            }
+            print('❌ Não foi possível abrir o WhatsApp');
+            _showSuccessMessage("Erro ao abrir WhatsApp. Referência: $paymentReference");
           }
-        } else {
-          // Subscrição criada mas sem URL de checkout
+        } catch (e) {
+          print('❌ Erro ao abrir WhatsApp: $e');
+          _showSuccessMessage("Erro ao abrir WhatsApp. Referência: $paymentReference");
+          
+          // Mesmo com erro, recarregar a subscrição
           await _loadSubscription();
-          _showSuccessMessage("Subscrição criada!");
         }
       } else {
         final data = json.decode(response.body);
@@ -350,60 +357,63 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         if (currentStatus == 'pendente' || 
             currentStatus == 'pending' || 
             currentStatus == 'pending_payment') {
-          print('⏳ Subscrição com pagamento pendente, extraindo URL de pagamento...');
+          print('⏳ Subscrição com pagamento pendente, abrindo WhatsApp...');
           
-          // Extrair informações de pagamento diretamente da resposta
-          final checkoutUrl = subscriptionData['payment']?['checkoutUrl'];
-          final paymentReference = subscriptionData['payment']?['reference'];
+          // Extrair informações de pagamento e usuário diretamente da resposta
+          final paymentReference = subscriptionData['payment']?['reference'] ?? 'N/A';
+          final amount = subscriptionData['payment']?['amount'] ?? 0;
+          final planName = subscriptionData['subscription']?['plan'] ?? 'N/A';
+          final userId = subscriptionData['subscription']?['user'] ?? prefs.getString('user_id') ?? 'N/A';
+          final userName = subscriptionData['user']?['username'] ?? 'N/A';
           
-          print('🔗 Checkout URL: $checkoutUrl');
           print('📝 Payment Reference: $paymentReference');
+          print('💰 Amount: $amount MZN');
+          print('📋 Plan: $planName');
+          print('👤 User ID: $userId');
+          print('👤 User Name: $userName');
           print('📦 Dados completos do pagamento: ${json.encode(subscriptionData['payment'])}');
 
           setState(() => _isCreatingSubscription = false);
 
-          if (checkoutUrl != null && checkoutUrl.isNotEmpty) {
-            if (kIsWeb) {
-              // No Web, abrir em nova aba
-              print('🌐 Abrindo URL de pagamento em nova aba (Web)...');
-              try {
-                final Uri uri = Uri.parse(checkoutUrl);
-                await launchUrl(uri, mode: LaunchMode.externalApplication);
-                print('✅ URL aberta em nova aba!');
-                
-                _showSuccessMessage("Complete o pagamento na nova aba!");
-                await _loadSubscription();
-              } catch (e) {
-                print('❌ Erro ao abrir URL: $e');
-                _showSuccessMessage("Erro ao abrir pagamento. Tente novamente.");
-              }
+          // Criar mensagem para WhatsApp com detalhes do pagamento
+          final String whatsappMessage = '''
+Olá! Gostaria de confirmar o pagamento da minha assinatura:
+
+👤 *Nome:* $userName
+🆔 *ID:* $userId
+📋 *Plano:* $planName
+💰 *Valor:* ${amount.toStringAsFixed(2)} MZN
+🔖 *Referência:* $paymentReference
+📅 *Data:* ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}
+
+Por favor, confirme o pagamento para ativar minha assinatura.
+          '''.trim();
+          
+          // Abrir WhatsApp com a mensagem
+          final String phoneNumber = '258849876543'; // Trocar pelo número real
+          final String whatsappUrl = 'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(whatsappMessage)}';
+          
+          print('📱 Abrindo WhatsApp...');
+          
+          try {
+            final Uri uri = Uri.parse(whatsappUrl);
+            final bool launched = await launchUrl(
+              uri,
+              mode: LaunchMode.externalApplication,
+            );
+            
+            if (launched) {
+              print('✅ WhatsApp aberto com sucesso!');
+              _showSuccessMessage("Complete o pagamento via WhatsApp!");
+              await _loadSubscription();
             } else {
-              // No Mobile, usar WebView
-              print('📱 Abrindo WebView de pagamento (Mobile)...');
-              
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CheckoutWebViewScreen(
-                    checkoutUrl: checkoutUrl,
-                    paymentReference: paymentReference ?? 'N/A',
-                  ),
-                ),
-              );
-              
-              if (result == true) {
-                print('✅ Retornou da WebView com sucesso!');
-                await _loadSubscription();
-                _showSuccessMessage("Pagamento em processamento!");
-              } else {
-                print('⚠️ Usuário cancelou o pagamento');
-              }
+              print('❌ Não foi possível abrir o WhatsApp');
+              _showSuccessMessage("Erro ao abrir WhatsApp. Referência: $paymentReference");
             }
-          } else {
-            setState(() {
-              _error = "URL de pagamento não encontrada";
-              _isCreatingSubscription = false;
-            });
+          } catch (e) {
+            print('❌ Erro ao abrir WhatsApp: $e');
+            _showSuccessMessage("Erro ao abrir WhatsApp. Referência: $paymentReference");
+            await _loadSubscription();
           }
         } else {
           // Subscrição não está pendente
