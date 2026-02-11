@@ -112,6 +112,30 @@ class AuthService {
     await prefs.remove(userIdKey);
   }
 
+  // Deletar conta do usuário
+  Future<void> deleteAccount() async {
+    final authData = await _getAuthData();
+    if (authData['token'] == null) {
+      throw Exception('Usuário não autenticado');
+    }
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/users/account'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${authData['token']}',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      // Limpar dados locais após exclusão bem-sucedida
+      await logout();
+    } else {
+      final errorData = json.decode(response.body);
+      throw Exception(errorData['message'] ?? 'Falha ao deletar conta');
+    }
+  }
+
   // Métodos auxiliares para gerenciar o token e ID
   Future<void> _saveAuthData(String token, String userId) async {
     final prefs = await SharedPreferences.getInstance();

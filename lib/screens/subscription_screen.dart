@@ -390,7 +390,7 @@ Por favor, confirme o pagamento para ativar minha assinatura.
           '''.trim();
           
           // Abrir WhatsApp com a mensagem
-          final String phoneNumber = '258849876543'; // Trocar pelo número real
+          final String phoneNumber = '258846151124'; // Trocar pelo número real
           final String whatsappUrl = 'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(whatsappMessage)}';
           
           print('📱 Abrindo WhatsApp...');
